@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Insightful QnA Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
+    <!-- Font Awesome for Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>VideoIntuit</h2>
+        <ul>
+            <!--<li>Home</li>-->
+            <li>History</li>
+            <li>Settings</li>
+        </ul>
+        <div class="sidebar-resizer"></div>
+    </div>
+        
+    <div class="main-container">
+        <div id="signin-button" draggable="false">
+            <span class="material-icons">person</span>
+        </div>
+        <div id="logo-container">
+            <img src="E:\Python\Mini Project\UI\vidintuit-removebg-preview.png" alt="Logo Watermark" id="logo-watermark" draggable="false">
+        </div>
+        <div class="chat-area">
+            <div class="chat-messages" id="chatMessages"></div>
+        </div>
+
+        <div class="file-preview-container" id="filePreviewContainer"></div>
+
+        <div class="input-container">
+            <button class="circle-btn" id="attachBtn">+</button>
+            <input type="file" id="fileInput" style="display: none;" multiple>
+            
+            <input type="text" placeholder="MessageVideoIntuit..." id="messageInput">
+            <button class="circle-btn" id="sendBtn">↑</button>
+
+        </div>
+    </div>
+</body>
+</html>
