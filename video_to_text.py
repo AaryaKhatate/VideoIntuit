@@ -7,9 +7,9 @@ import numpy as np
 import soundfile as sf
 import yt_dlp  # Import yt-dlp Python package
 import time  # For timing the process
-
+#comment added
 # Path to FFmpeg binary
-FFMPEG_PATH = r"C:\ffmpeg\ffmpeg-7.1-essentials_build\bin\ffmpeg.exe"
+FFMPEG_PATH = r"C:\Users\Yashraj Patil\Downloads\ffmpeg-2025-01-30-git-1911a6ec26-full_build\ffmpeg-2025-01-30-git-1911a6ec26-full_build\bin\ffmpeg.exe"
 
 def extract_audio(video_path):
     """Extracts audio from a local video file using FFmpeg and returns it as a NumPy array."""
