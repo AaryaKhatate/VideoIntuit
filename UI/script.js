@@ -24,10 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
         "default": "📁" // Default file icon
     };
 
+    // Set max-height for user messages 
     const messageElements = document.querySelectorAll(".user-message");
-
     messageElements.forEach(function (messageElement) {
-        // Example: Set max-height to 30% of viewport height
         messageElement.style.maxHeight = window.innerHeight * 0.3 + "px";
     });
 
