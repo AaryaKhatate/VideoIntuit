@@ -114,8 +114,9 @@ body {
     background: white;
     border-radius: 25px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    min-height: 50px;
-    max-height: 150px;
+    min-height: 50px; /* Adjust min-height as needed */
+    max-height: 150px; /* Adjust max-height as needed */
+    overflow-y: auto; /* Enable vertical scrolling */
     flex-direction: row;
     position: fixed; /* Use fixed positioning */
     bottom: 20px; /* Adjust bottom distance */
@@ -139,8 +140,9 @@ body {
     min-width: 150px;
     resize: none;
     overflow-y: auto;
-    min-height: 50px;
-    max-height: 100px;
+    min-height: 40px; /* Adjust min-height as needed */
+    max-height: 100px; /* Adjust max-height as needed */
+    overflow-y: auto; /* Enable vertical scrolling */
     white-space: pre-wrap;
     box-sizing: border-box;
     line-height: 1.5;
@@ -226,7 +228,6 @@ input-container input::-webkit-scrollbar-thumb:hover {
     white-space: pre-wrap;
     flex-wrap: wrap;
     word-break: break-word;
-    /*max-height: 300px;  Limit vertical height */
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
@@ -267,37 +268,37 @@ input-container input::-webkit-scrollbar-thumb:hover {
 
 /* Individual file preview */
 .file-tag {
-    background: #8b5cf6;
+    background: #222; /* Dark background */
     color: white;
-    padding: 8px;
-    border-radius: 10px;
+    padding: 8px 12px; /* Add horizontal padding */
+    border-radius: 5px; /* Slightly less rounded corners */
     font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px; /* Reduced gap */
     position: relative;
 }
 
 /* Image preview inside file preview */
 .file-preview-image {
-    width: 40px;
-    height: 40px;
+    width: 30px; /* Reduced image size */
+    height: 30px; /* Reduced image size */
     border-radius: 5px;
 }
 
 /* Remove file button (X) */
 .remove-file {
-    background: red;
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
     color: white;
     border: none;
     font-size: 14px;
     border-radius: 50%;
     cursor: pointer;
     position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 16px;
-    height: 16px;
+    top: -8px; /* Adjust top position */
+    right: -8px; /* Adjust right position */
+    width: 20px; /* Increased size */
+    height: 20px; /* Increased size */
     display: flex;
     align-items: center;
     justify-content: center;
