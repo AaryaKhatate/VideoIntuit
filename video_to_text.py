@@ -29,7 +29,7 @@ def extract_audio(video_source, output_file="temp_audio.wav"):
 
 def extract_audio_from_video_url(video_url, output_file="temp_audio.wav"):
     """Downloads audio from YouTube or online video URL and saves it."""
-    print("Extracting audio from YouTube video...")
+    print("Extracting audio from video...")
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
@@ -87,7 +87,7 @@ def answer_question(conversation_history):
         if question.lower() == "exit":
             break
         
-        conversation_history.append({"role": "user", "content": question})
+        conversation_history.append({"role": "user", "content": f"This is the question provided by the user. Answer the this question based on provided transcript only. If user asks any question that is not included in transcript then ask user whether you should answer based on your knowledge. Question : {question}"})
 
         try:
             stream = ollama.chat(
@@ -131,9 +131,9 @@ def main():
     if os.path.exists(audio_path):
         os.remove(audio_path)
     
-    conversation_history = [{"role": "system", "content": f"This is the transcript of the video. Answer the question based on this transcript.\nTranscript of the video: {transcript}"}]
+    conversation_history = [{"role": "system", "content": f"This is the transcript of the video provided by the user. Answer the following questions based on this transcript only. If user asks any question that is not included in transcript then ask user whether you should answer based on your knowledge.\nTranscript of the video: {transcript}"}]
     
-    conversation_history.append({"role": "user", "content": first_question})
+    conversation_history.append({"role": "user", "content": f"This is the question provided by the user. Answer the this question based on provided transcript only. If user asks any question that is not included in transcript then ask user whether you should answer based on your knowledge. Question : {first_question}"})
     
     try:
         stream = ollama.chat(
