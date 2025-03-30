@@ -77,6 +77,20 @@
            <button class="circle-btn" id="sendBtn">↑</button>
        </section>
 
+       <script>
+            // Function to focus on the input field
+            function focusInput() {
+                document.getElementById("messageInput").focus();
+            }
+      
+            // Focus input on page load
+            window.onload = focusInput;
+      
+            // Detect any key press and move cursor to input field
+                document.addEventListener("keydown", function(event) {
+                focusInput();
+            });
+      </script>
 
    </main>
 
