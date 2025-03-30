@@ -1,51 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Insightful QnA Assistant</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
-    <!-- Font Awesome for Icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>VideoIntuit</title>
+
+
+   <!-- Stylesheets -->
+   <link rel="stylesheet" href="styles.css">
+
+
+   <!-- Scripts -->
+   <script defer src="script.js"></script>
+
+
+   <!-- Font Awesome & Google Icons -->
+   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div class="sidebar">
-        <h2>VideoIntuit</h2>
-        <ul>
-            <!--<li>Home</li>-->
-            <li>History</li>
-            <li>Settings</li>
-        </ul>
-        <div class="sidebar-resizer"></div>
-    </div>
-        
-    <div class="main-container">
-        <div id="signin-button" draggable="false">
-            <span class="material-icons">person</span>
-        </div>
-        <div id="logo-container">
-<<<<<<< HEAD
-            <img src="E:\Mini_Project Sem4\UI\vidintuit-removebg-preview.png" alt="Logo Watermark" id="logo-watermark" draggable="false">
-=======
-            <img src="D:\Mini project sem 4\VideoIntuit\UI\vidintuit-removebg-preview.png" alt="Logo Watermark" id="logo-watermark" draggable="false">
->>>>>>> 4bd0b7f7dce15c852f70ceaffd82c6ca20434d92
-        </div>
-        <div class="chat-area">
-            <div class="chat-messages" id="chatMessages"></div>
-        </div>
 
-        <div class="file-preview-container" id="filePreviewContainer"></div>
 
-        <div class="input-container">
-            <button class="circle-btn" id="attachBtn">+</button>
-            <input type="file" id="fileInput" style="display: none;" multiple>
-            
-            <input type="text" placeholder="MessageVideoIntuit..." id="messageInput">
-            <button class="circle-btn" id="sendBtn">↑</button>
+   <!-- Sidebar -->
+   <aside class="sidebar">
+       <div class="sidebar-buttons">
+           <button class="newChat-btn">
+               <span class="material-icons">add</span>
+           </button>
+           <button class="search-btn">
+               <span class="material-icons">search</span>
+           </button>
+           <button class="close-btn" onclick="closeSidebar()">
+               <span class="material-icons">close</span>
+           </button>
+       </div>
+       <div class="app-name1">VideoIntuit</div>
+       <ul class="sidebar-menu">
+           <li>History</li>
+       </ul>
+   </aside>
 
-        </div>
-    </div>
+
+   <!-- Main Content -->
+   <main class="main-container">
+
+
+       <!-- Header -->
+       <header class="header">
+           <div class="app-name">VideoIntuit</div>
+           <div class="header-buttons">
+               <button class="share-btn" onclick="shareChat()">
+                   <span class="material-icons">share</span> Share
+               </button>
+               <div id="signin-button">
+                   <span class="material-icons">person</span>
+               </div>
+           </div>
+       </header>
+
+
+       <!-- Chat Area -->
+       <section class="chat-area">
+           <div class="chat-messages" id="chatMessages"></div>
+       </section>
+
+
+       <!-- File Preview -->
+       <section class="file-preview-container" id="filePreviewContainer"></section>
+
+
+       <!-- Input Container -->
+       <section class="input-container">
+           <button class="circle-btn" id="attachBtn">+</button>
+           <input type="file" id="fileInput" hidden multiple>
+           <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
+           <button class="circle-btn" id="sendBtn">↑</button>
+       </section>
+
+
+   </main>
+
+
 </body>
 </html>
+
+
