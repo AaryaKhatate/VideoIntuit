@@ -1,0 +1,90 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoIntuit</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'ui/styles.css' %}">
+
+    <!-- Scripts -->
+    <script defer src="{% static 'ui/script.js' %}"></script>
+
+    <!-- Font Awesome & Google Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-buttons">
+            <button class="newChat-btn">
+                <span class="material-icons">add</span>
+            </button>
+            <button class="search-btn">
+                <span class="material-icons">search</span>
+            </button>
+            <button class="close-btn" onclick="closeSidebar()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="app-name1">VideoIntuit</div>
+        <ul class="sidebar-menu">
+            <li>History</li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="app-name">VideoIntuit</div>
+            <div class="header-buttons">
+                <button class="share-btn" onclick="shareChat()">
+                    <span class="material-icons">share</span> Share
+                </button>
+                <div id="signin-button">
+                    <span class="material-icons">person</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <section class="chat-area">
+            <div class="chat-messages" id="chatMessages"></div>
+        </section>
+
+        <!-- Input Container -->
+        <section class="input-container">
+            <!-- File Preview -->
+            <section class="file-preview-container" id="filePreviewContainer"></section>
+
+            <input type="file" id="fileInput" hidden multiple>
+            <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
+            
+            <div class="input-container-buttons">
+                <button class="attach-btn" id="attachBtn">+</button>
+                <button class="send-btn" id="sendBtn">↑</button>
+            </div>
+        </section>
+
+        <!-- Auto-focus Script -->
+        <script>
+            function focusInput() {
+                document.getElementById("messageInput").focus();
+            }
+
+            window.onload = focusInput;
+
+            document.addEventListener("keydown", function() {
+                focusInput();
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>
