@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VideoIntuit</title>
 
-    <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'ui/styles.css' %}">
 
-    <!-- Scripts -->
     <script defer src="{% static 'ui/script.js' %}"></script>
 
-    <!-- Font Awesome & Google Icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-buttons">
             <button class="newChat-btn">
@@ -36,10 +32,8 @@
         </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-container">
 
-        <!-- Header -->
         <header class="header">
             <div class="app-name">VideoIntuit</div>
             <div class="header-buttons">
@@ -52,36 +46,45 @@
             </div>
         </header>
 
-        <!-- Chat Area -->
         <section class="chat-area">
-            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-messages" id="chatMessages">
+                </div>
         </section>
 
-        <!-- Input Container -->
         <section class="input-container">
-            <!-- File Preview -->
             <section class="file-preview-container" id="filePreviewContainer"></section>
 
             <input type="file" id="fileInput" hidden multiple>
             <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
-            
+
             <div class="input-container-buttons">
                 <button class="attach-btn" id="attachBtn">+</button>
+                <span id="loadingIndicator" class="loading-spinner" style="display: none;"></span>
                 <button class="send-btn" id="sendBtn">↑</button>
             </div>
         </section>
 
-        <!-- Auto-focus Script -->
         <script>
             function focusInput() {
                 document.getElementById("messageInput").focus();
             }
 
+            // Initial focus
             window.onload = focusInput;
 
-            document.addEventListener("keydown", function() {
-                focusInput();
-            });
+            // Re-focus on keydown anywhere might be annoying, consider focusing only when clicking in the main area or input
+            // document.addEventListener("keydown", function() {
+            //     focusInput();
+            // });
+
+            // Better: Re-focus when clicking outside the input but inside the main container perhaps
+             document.querySelector('.main-container').addEventListener('click', (event) => {
+                 // Avoid refocusing if clicking on interactive elements like buttons or the input itself
+                 if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'TEXTAREA' && event.target.id !== 'signin-button' && !event.target.closest('.sidebar')) {
+                    focusInput();
+                 }
+             });
+
         </script>
 
     </main>

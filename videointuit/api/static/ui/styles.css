@@ -28,26 +28,29 @@ body {
    position: fixed;
    left: 0;
    top: 0;
-   overflow: hidden;
+   overflow: hidden; /* Consider overflow-y: auto if content might exceed height */
    z-index: 1001;
+   box-sizing: border-box; /* Include padding in width */
 }
 
-/* App Name */
 .app-name1 {
    font-size: 16px;
    color: #6b7280;
+   margin-bottom: 10px; /* Add some space */
 }
 
-/* Sidebar Buttons */
 .sidebar-buttons {
    display: flex;
    gap: 10px;
+   margin-bottom: 15px; /* Add space below buttons */
 }
 
-/* Sidebar List */
 .sidebar ul {
    list-style: none;
    padding: 0;
+   margin: 0; /* Remove default margin */
+   overflow-y: auto; /* Allow scrolling if history grows */
+   flex-grow: 1; /* Allow list to take available space */
 }
 
 .sidebar ul li {
@@ -66,78 +69,80 @@ body {
 /* ======================== */
 
 .header {
-   position: fixed;
+   position: fixed; /* Changed from fixed to relative to main-container */
    top: 0;
-   height: 30px;
-   width: calc(100% - 300px);
-   background: #f8f9fc;
+   left: 220px; /* Account for sidebar width */
+   right: 0; /* Make it span the rest */
+   height: 60px; /* Increased height for better spacing */
+   width: calc(100% - 220px); /* Adjust width */
+   background: #f8f9fc; /* Same as body background */
    display: flex;
    justify-content: space-between;
    align-items: center;
-   padding: 15px 20px;
-   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+   padding: 0 25px; /* Adjusted padding */
+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Softer shadow */
    z-index: 1000;
+   box-sizing: border-box;
 }
 
-/* App Name */
 .app-name {
    font-size: 22px;
    font-weight: bold;
    color: #000000;
 }
 
-/* Header Buttons */
 .header-buttons {
    display: flex;
-   gap: 10px;
+   gap: 15px; /* Increased gap */
+   align-items: center;
 }
 
 /* ======================== */
 /* Buttons Styles */
 /* ======================== */
 
-/* Close, Search, and New Chat Buttons */
+/* Base Button Style */
+button {
+   transition: background 0.2s ease-in-out, transform 0.1s ease-in-out;
+   border: none;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+button:hover {
+    transform: scale(1.05); /* Slight scale on hover */
+}
+
+/* Sidebar Buttons */
 .close-btn,
 .search-btn,
 .newChat-btn {
-   width: 30px;
-   height: 30px;
-   border: none;
-   border-radius: 5px;
-   background: #ffffff;
-   color: #6b7280;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   cursor: pointer;
+   width: 35px;  /* Slightly larger */
+   height: 35px;
+   border-radius: 8px; /* Rounded corners */
+   background: #f3f4f6; /* Light grey background */
+   color: #4b5563; /* Darker grey icon */
 }
-
 .close-btn:hover,
 .search-btn:hover,
 .newChat-btn:hover {
-   background: #e5e7eb;
-   transform: scale(1.1);
+   background: #e5e7eb; /* Darker grey on hover */
 }
 
 /* Share Button */
 .share-btn {
-   display: flex;
-   align-items: center;
-   gap: 5px;
-   background: #8b5cf6;
+   gap: 8px;
+   background: #8b5cf6; /* Purple */
    color: white;
-   height: 40px;
-   padding: 0 15px;
-   border: none;
-   border-radius: 50px;
+   height: 38px; /* Slightly shorter */
+   padding: 0 18px; /* More padding */
+   border-radius: 50px; /* Pill shape */
    font-size: 14px;
-   font-weight: bold;
-   transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
+   font-weight: 500; /* Medium weight */
 }
-
 .share-btn:hover {
-   background: #7c3aed;
-   transform: scale(1.1);
+   background: #7c3aed; /* Darker purple */
 }
 
 /* Sign-in Button */
@@ -151,10 +156,9 @@ body {
    justify-content: center;
    align-items: center;
    cursor: pointer;
-   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
    transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
 }
-
 #signin-button:hover {
    background: #7c3aed;
    transform: scale(1.1);
@@ -165,16 +169,13 @@ body {
 /* ======================== */
 
 .main-container {
-   position: relative;
    display: flex;
    flex-direction: column;
-   align-items: flex-end;
-   height: 100vh;
-   flex: 1;
+   height: 100vh; /* Full viewport height */
+   flex: 1; /* Take remaining space */
+   margin-left: 220px; /* Account for sidebar */
    box-sizing: border-box;
-   overflow: hidden;
-   padding-bottom: 20px;
-   margin-left: 220px;
+   overflow: hidden; /* Prevent main container scroll */
 }
 
 /* ======================== */
@@ -182,44 +183,92 @@ body {
 /* ======================== */
 
 .chat-area {
+   flex-grow: 1;
    display: flex;
+   /* CHANGE BACK: Reverse column direction */
    flex-direction: column-reverse;
-   align-items: flex-end;
-   justify-content: flex-end;
-   gap: 10px;
-   height: 100%;
-   width: 100%;
-   overflow-y: auto;
-   margin-top: 60px;
+   overflow-y: auto; /* Keep scrolling on the container */
+   padding: 20px;
+   padding-top: 20px; /* Can reduce top padding if header is fixed */
+   padding-bottom: 80px; /* Space above input, adjusted for reverse */
    scroll-behavior: smooth;
+   box-sizing: border-box;
 }
 
-/* Chat Messages Container */
 #chatMessages {
    display: flex;
+    /* CHANGE BACK: Reverse column direction */
    flex-direction: column-reverse;
-   align-self: center;
+   gap: 15px;
    width: 100%;
-   height: 100%;
-   max-width: 800px;
-   overflow-y: auto;
-   flex-shrink: 0;
+   max-width: 850px;
+   margin: 0 auto;
+   box-sizing: border-box;
+   /* No height/overflow needed here if .chat-area scrolls */
+}
+
+/* Base Message Style (Optional but good practice) */
+.message-bubble { /* Assuming JS adds this class */
+   padding: 12px 18px; /* Consistent padding */
+   border-radius: 18px; /* Rounded bubbles */
+   font-size: 15px; /* Slightly smaller font */
+   line-height: 1.5;
+   word-wrap: break-word;
+   white-space: pre-wrap; /* Preserve whitespace/newlines */
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+   max-width: 70%; /* Max width */
+   min-width: 5px;
 }
 
 /* User Messages */
 .user-message {
-   max-width: 60%;
-   min-width: 5px;
-   padding: 0px 20px;
-   background: #8b5cf6;
+   background: #8b5cf6; /* Purple */
    color: #ffffff;
-   border-radius: 25px;
+   border-radius: 18px 18px 5px 18px; /* Tail effect */
+   margin-left: auto; /* Push to right */
+   align-self: flex-end; /* Align bubble itself to end */
+}
+/* Add styles from .message-bubble if not using a base class in JS */
+.user-message p { margin: 0; } /* Remove default paragraph margin */
+
+/* Assistant Messages */
+.assistant-message {
+   background-color: #e5e7eb; /* Light grey */
+   color: #1f2937; /* Dark text */
+   border-radius: 18px 18px 18px 5px; /* Tail effect */
+   margin-right: auto; /* Push to left */
+   align-self: flex-start; /* Align bubble itself to start */
+}
+.assistant-message p { margin: 0; }
+
+/* System/Error Messages */
+.system-message,
+.error-message {
+   font-style: italic;
+   color: #6b7280; /* Grey text */
+   align-self: center; /* Center align */
+   text-align: center;
+   font-size: 13px; /* Smaller */
    margin: 10px 20px;
-   font-size: 16px;
-   word-wrap: break-word;
-   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-   align-self: flex-end;
-   white-space: pre-wrap;
+   max-width: 80%;
+   background: none; /* No bubble background */
+   box-shadow: none;
+   padding: 0;
+}
+
+.error-message {
+   color: #dc2626; /* Red */
+   font-weight: 500; /* Medium weight */
+   font-style: normal; /* Not italic */
+}
+
+/* Style for links within messages */
+.message-bubble a {
+   color: inherit; /* Inherit color (white for user, dark for assistant) */
+   text-decoration: underline;
+}
+.message-bubble a:hover {
+   text-decoration: none;
 }
 
 /* ======================== */
@@ -227,45 +276,19 @@ body {
 /* ======================== */
 
 .input-container {
-   width: 65%;
-   position: relative;
+   width: 100%; /* Full width relative to main-container */
+   max-width: 850px; /* Match chat message width */
+   margin: 0 auto; /* Center it */
+   margin-bottom: 20px; /* Space at the bottom */
+   position: relative; /* For positioning buttons */
    display: flex;
-   flex-direction: column;
-   align-items: center;
-   padding: 10px;
-   background: white;
-   border-radius: 25px;
-   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-   height: auto;
-   min-height: 110px;
-   align-self: center;
-   margin-top: auto;
+   flex-direction: column; /* Stack preview, input, buttons */
+   padding: 12px; /* Padding inside the container */
+   background: #ffffff;
+   border-radius: 20px; /* Rounded corners */
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+   min-height: auto; /* Let content define height */
    box-sizing: border-box;
-   padding-bottom: 55px;
-}
-
-/* Input + Files Wrapper */
-.input-wrapper {
-   width: 100%;
-   display: flex;
-   flex-direction: column;
-   justify-content: flex-end;
-   min-height: 55px;
-   flex-grow: 1;
-}
-
-/* Input Field */
-#messageInput {
-   width: 100%;
-   height: 45px;
-   border: none;
-   outline: none;
-   background: transparent;
-   font-size: 16px;
-   box-sizing: border-box;
-   position: relative;
-   resize: none;
-   margin: 5px 0;
 }
 
 /* File Preview Container */
@@ -273,59 +296,131 @@ body {
    width: 100%;
    display: flex;
    flex-wrap: wrap;
-   gap: 10px;
-   position: relative;
-   min-height: 0px;
-   padding-bottom: 5px;
+   gap: 8px;
+   padding-bottom: 8px; /* Space below previews */
+   /* Max height and scroll if needed */
+   max-height: 100px;
+   overflow-y: auto;
 }
 
 /* File Tag */
 .file-tag {
-   background: #ddd;
-   padding: 5px 10px;
-   border-radius: 5px;
-   font-size: 14px;
-   color: #333;
-   display: flex;
+   background: #f3f4f6; /* Light grey */
+   padding: 5px 8px 5px 10px; /* Adjust padding */
+   border-radius: 12px; /* Pill shape */
+   font-size: 13px; /* Smaller font */
+   color: #374151; /* Darker grey text */
+   display: inline-flex; /* Use inline-flex */
    align-items: center;
-   justify-content: space-between;
+   gap: 6px; /* Space between elements */
    white-space: nowrap;
 }
+.file-tag img { /* Style for image previews inside tag */
+    max-width: 20px;
+    max-height: 20px;
+    border-radius: 4px;
+}
+.file-tag .remove-file-btn { /* Style remove button */
+   background: none;
+   border: none;
+   color: #9ca3af; /* Light grey X */
+   cursor: pointer;
+   padding: 0;
+   margin-left: 4px;
+   font-size: 14px;
+   line-height: 1;
+}
+.file-tag .remove-file-btn:hover {
+   color: #ef4444; /* Red on hover */
+   transform: none; /* Override base button hover */
+}
 
-/* Input Container Buttons */
-.input-container-buttons {
-   width: 100%;
-   height: 45px;
+
+/* Input Area (Textarea + Buttons Wrapper) */
+.input-area {
    display: flex;
-   align-items: center;
-   justify-content: space-between;
-   box-sizing: border-box;
-   position: absolute;
-   bottom: 10px;
-   left: 0;
-   padding: 0 10px;
+   align-items: flex-end; /* Align items to bottom */
+   width: 100%;
+   gap: 10px;
+}
+
+/* Text Input Field */
+#messageInput {
+   flex-grow: 1; /* Take available space */
+   border: none;
+   outline: none;
+   background: transparent;
+   font-size: 15px;
+   line-height: 1.5;
+   padding: 10px 0; /* Vertical padding only */
+   resize: none;
+   min-height: 24px; /* Min height for one line */
+   max-height: 150px; /* Max height before scrolling (approx 6 lines) */
+   overflow-y: auto; /* Enable scrolling within textarea if needed */
+   box-sizing: border-box; /* Include padding in height */
+   margin: 0; /* Remove default margin */
+}
+#messageInput::placeholder {
+   color: #9ca3af;
+}
+
+
+/* Input Container Buttons (Now just Attach/Send) */
+.input-container-buttons {
+  display: flex;
+  align-items: center; /* Vertically align */
+  gap: 10px; /* Space between buttons and spinner */
+  height: auto; /* Let content define height */
+  /* Remove absolute positioning properties */
 }
 
 /* Attach & Send Buttons */
-.attach-btn, 
+.attach-btn,
 .send-btn {
-   width: 45px;
-   height: 45px;
-   display: flex;
-   align-items: center;
-   justify-content: center;
+   width: 40px; /* Slightly smaller */
+   height: 40px;
    border-radius: 50%;
-   border: none;
    background: #8b5cf6;
    color: #ffffff;
-   font-size: 16px;
+   font-size: 20px; /* Adjust icon size */
    cursor: pointer;
-   transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
-   flex-shrink: 0;
+   flex-shrink: 0; /* Prevent shrinking */
 }
 
 .attach-btn:hover,
 .send-btn:hover {
    background: #7c3aed;
-   transform: scale(1.1);
+   /* transform is handled by base button style */
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(139, 92, 246, 0.3);
+  border-radius: 50%;
+  border-top-color: #8b5cf6;
+  animation: spin 1s ease-infinite;
+  /* margin: 0 5px; */ /* Removed margin, use gap */
+  vertical-align: middle; /* Align with buttons if needed */
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled State for Buttons */
+.send-btn:disabled,
+.attach-btn:disabled {
+   background-color: #d1d5db; /* Disabled grey */
+   cursor: not-allowed;
+   transform: none; /* Prevent hover effect */
+}
+
+.send-btn:disabled:hover,
+.attach-btn:disabled:hover {
+   background-color: #d1d5db; /* Keep grey on hover when disabled */
 }
