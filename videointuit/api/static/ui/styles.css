@@ -1,0 +1,456 @@
+/* ======================== */
+/* General Styles */
+/* ======================== */
+
+body {
+   display: flex;
+   height: 100vh;
+   margin: 0;
+   background-color: #f8f9fc; /* Light background */
+   font-family: Arial, sans-serif;
+   color: #333; /* Default text color */
+   overflow: hidden; /* Prevent body scrolling */
+}
+
+/* Box sizing */
+*, *::before, *::after {
+   box-sizing: border-box;
+}
+
+/* ======================== */
+/* Sidebar Styles */
+/* ======================== */
+
+.sidebar {
+   width: 220px; /* Fixed width */
+   height: 100vh;
+   background: #ffffff; /* White background */
+   color: #6b7280; /* Grey text */
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   gap: 20px; /* Spacing between elements */
+   position: fixed; /* Fixed position */
+   left: 0;
+   top: 0;
+   border-right: 1px solid #e5e7eb; /* Subtle border */
+   z-index: 1001; /* Above main content if needed */
+   overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+/* Sidebar App Name */
+.sidebar .app-name1 { /* Use specific class if needed */
+   font-size: 18px; /* Slightly larger */
+   font-weight: bold;
+   color: #4b5563; /* Darker grey */
+   padding-bottom: 10px; /* Space below title */
+}
+
+/* Sidebar Buttons Container */
+.sidebar-buttons {
+   display: flex;
+   gap: 10px;
+   padding-bottom: 10px; /* Space below buttons */
+}
+
+/* Sidebar List */
+.sidebar ul {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+   flex-grow: 1; /* Allow list to take remaining space */
+}
+
+.sidebar ul li {
+   padding: 10px 12px; /* Adjust padding */
+   cursor: pointer;
+   border-radius: 8px;
+   transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+   font-size: 14px; /* Slightly smaller font */
+   margin-bottom: 5px; /* Space between items */
+}
+
+.sidebar ul li:hover {
+   background: #f3f4f6; /* Lighter hover */
+   color: #1f2937; /* Darker text on hover */
+}
+
+/* ======================== */
+/* Header Styles */
+/* ======================== */
+
+.header {
+   position: fixed; /* Fixed header */
+   top: 0;
+   left: 220px; /* Positioned next to the sidebar */
+   width: calc(100% - 220px); /* Full width minus sidebar */
+   height: 60px; /* Standard header height */
+   background: #f8f9fc; /* Match body background */
+   display: flex;
+   justify-content: space-between; /* Space out elements */
+   align-items: center;
+   padding: 0 25px; /* Horizontal padding */
+   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); Subtle shadow */
+   border-bottom: 1px solid #e5e7eb; /* Separator line */
+   z-index: 1000; /* Below sidebar but above content */
+}
+
+/* Header App Name */
+.header .app-name {
+   font-size: 20px;
+   font-weight: 600; /* Semi-bold */
+   color: #1f2937; /* Dark text */
+}
+
+/* Header Buttons Container */
+.header-buttons {
+   display: flex;
+   align-items: center; /* Align vertically */
+   gap: 15px; /* Space between buttons */
+}
+
+/* ======================== */
+/* General Button Styles */
+/* ======================== */
+
+button {
+   cursor: pointer;
+   transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:disabled {
+   cursor: not-allowed;
+   opacity: 0.6;
+}
+
+/* Icon Buttons (Sidebar/Header Small Buttons) */
+.close-btn,
+.search-btn,
+.newChat-btn { /* Assuming these are buttons now */
+   width: 36px; /* Slightly larger */
+   height: 36px;
+   border: none;
+   border-radius: 8px; /* Smoother radius */
+   background: #ffffff;
+   color: #6b7280;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border: 1px solid #e5e7eb; /* Subtle border */
+}
+
+.close-btn:hover,
+.search-btn:hover,
+.newChat-btn:hover {
+   background: #f3f4f6; /* Light hover */
+   border-color: #d1d5db;
+}
+
+/* Share Button */
+.share-btn {
+   display: flex;
+   align-items: center;
+   gap: 8px; /* Space between icon and text */
+   background: #8b5cf6; /* Purple theme color */
+   color: white;
+   height: 40px;
+   padding: 0 20px; /* More padding */
+   border: none;
+   border-radius: 20px; /* Pill shape */
+   font-size: 14px;
+   font-weight: 500; /* Medium weight */
+}
+
+.share-btn:hover {
+   background: #7c3aed; /* Darker purple on hover */
+   transform: translateY(-1px); /* Slight lift */
+}
+
+/* Sign-in / Profile Button */
+#signin-button {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%; /* Circle */
+   background: #8b5cf6;
+   color: white;
+   border: none;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#signin-button:hover {
+   background: #7c3aed;
+   transform: scale(1.05); /* Slightly larger */
+}
+
+/* ======================== */
+/* Main Container Styles */
+/* ======================== */
+
+.main-container {
+   margin-left: 220px; /* Offset by sidebar width */
+   width: calc(100% - 220px); /* Take remaining width */
+   height: 100vh;
+   display: flex;
+   flex-direction: column; /* Stack header, chat, input vertically */
+   background-color: #f8f9fc; /* Ensure background consistency */
+   padding-top: 60px; /* Account for fixed header height */
+   box-sizing: border-box;
+}
+
+/* ======================== */
+/* Chat Area Styles */
+/* ======================== */
+
+.chat-area {
+   flex-grow: 1; /* Take available vertical space */
+   overflow-y: auto; /* Enable scrolling for messages */
+   padding: 20px 25px; /* Padding around messages */
+   flex-grow: 1; /* Take available vertical space */
+   overflow-y: auto; /* Enable scrolling for messages */
+   padding: 20px 25px; /* Padding around messages */
+   display: flex;
+   flex-direction: column; /* Default direction (or remove line entirely) */
+}
+
+/* Messages Container */
+#chatMessages {
+   width: 100%;
+   max-width: 800px;
+   margin: 0 auto;
+   display: flex;
+   flex-direction: column; /* Ensures messages stack top-to-bottom */
+}
+
+/* Common Message Bubble Styles */
+.user-message,
+.assistant-message,
+.system-message,
+.error-message {
+   padding: 10px 18px; /* Comfortable padding */
+   border-radius: 18px; /* Rounded corners */
+   margin-bottom: 12px; /* Space between bubbles */
+   max-width: 75%; /* Max width relative to container */
+   word-wrap: break-word; /* Wrap long words */
+   line-height: 1.5;
+   font-size: 15px; /* Slightly adjusted font size */
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); /* Softer shadow */
+}
+/* Ensure <p> tags inside messages don't add extra margin */
+.user-message p,
+.assistant-message p,
+.system-message p,
+.error-message p {
+   margin: 0;
+   white-space: pre-wrap; /* Preserve whitespace and newlines */
+}
+
+
+/* User Messages */
+.user-message {
+   background: #8b5cf6; /* Purple */
+   color: #ffffff;
+   align-self: flex-end; /* Align to the right */
+   border-bottom-right-radius: 6px; /* Tail effect */
+}
+
+/* Assistant Messages */
+.assistant-message {
+   background: #ffffff; /* White */
+   color: #374151; /* Dark grey text */
+   align-self: flex-start; /* Align to the left */
+   border: 1px solid #e5e7eb; /* Subtle border */
+   border-bottom-left-radius: 6px; /* Tail effect */
+}
+/* Styling for code blocks within assistant messages (requires Markdown parsing) */
+.assistant-message pre {
+   background-color: #f3f4f6;
+   padding: 10px;
+   border-radius: 4px;
+   overflow-x: auto;
+   font-family: monospace;
+   font-size: 14px;
+}
+.assistant-message code:not(pre code) { /* Inline code */
+    background-color: #f3f4f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+
+/* System Info Messages */
+.system-message {
+   font-style: italic;
+   color: #6b7280; /* Medium grey */
+   align-self: center; /* Center align */
+   text-align: center;
+   font-size: 13px;
+   background-color: #f9fafb; /* Very light background */
+   border: 1px dashed #d1d5db; /* Dashed border */
+   max-width: 80%;
+   box-shadow: none; /* No shadow */
+}
+
+/* Error Messages */
+.error-message {
+   color: #dc2626; /* Red text */
+   background-color: #fee2e2; /* Light red background */
+   border: 1px solid #fca5a5; /* Red border */
+   font-weight: 500;
+   align-self: center; /* Center align */
+   text-align: center;
+   font-size: 14px;
+   max-width: 80%;
+   box-shadow: none; /* No shadow */
+}
+
+/* ======================== */
+/* Input Container Styles */
+/* ======================== */
+
+.input-container {
+   width: 100%; /* Full width within main-container */
+   max-width: 800px; /* Match chat message width */
+   margin: 0 auto; /* Center horizontally */
+   padding: 12px 15px; /* Padding inside the container */
+   background: #ffffff;
+   border-radius: 24px; /* More rounded */
+   box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.08); /* Shadow */
+   display: flex;
+   flex-direction: column;
+   margin-bottom: 20px; /* Space from bottom */
+   border: 1px solid #e5e7eb; /* Subtle border */
+   position: relative; /* For positioning buttons */
+   box-sizing: border-box;
+   padding-bottom: 65px; /* Space for the absolute positioned buttons row */
+}
+
+/* File Preview Area */
+.file-preview-container {
+   width: 100%;
+   display: flex;
+   flex-wrap: wrap; /* Allow tags to wrap */
+   gap: 8px; /* Space between file tags */
+   padding-bottom: 8px; /* Space below previews if present */
+   /* min-height set dynamically by JS if needed */
+}
+
+/* Individual File Tag */
+.file-tag {
+   background: #f3f4f6; /* Light grey background */
+   padding: 6px 10px;
+   border-radius: 16px; /* Pill shape */
+   font-size: 13px;
+   color: #4b5563; /* Darker grey text */
+   display: flex;
+   align-items: center;
+   gap: 6px; /* Space between icon, name, button */
+   white-space: nowrap; /* Prevent wrapping inside tag */
+   border: 1px solid #e5e7eb;
+}
+
+/* Remove File Button (inside tag) */
+.remove-file-btn {
+   background: none;
+   border: none;
+   color: #9ca3af; /* Light grey X */
+   cursor: pointer;
+   padding: 0;
+   margin-left: 4px; /* Space before X */
+   font-size: 14px;
+   line-height: 1;
+}
+.remove-file-btn:hover {
+   color: #374151; /* Darker X on hover */
+}
+
+
+/* Wrapper for Textarea (allows it to grow) */
+.input-wrapper {
+   width: 100%;
+   display: flex; /* Needed? Maybe not */
+}
+
+/* Text Input Field */
+#messageInput {
+   flex-grow: 1; /* Take available space */
+   border: none;
+   outline: none;
+   background: transparent; /* Blend with container */
+   font-size: 16px;
+   padding: 10px 5px; /* Padding inside textarea */
+   resize: none; /* Disable manual resize handle */
+   overflow-y: auto; /* Allow scrolling if max-height exceeded */
+   min-height: 45px; /* Minimum height */
+   max-height: 150px; /* Max height before scrolling */
+   line-height: 1.5;
+   width: 100%; /* Ensure it takes full width */
+}
+
+/* Container for Bottom Buttons (Attach/Send) */
+.input-container-buttons {
+   width: calc(100% - 30px); /* Adjust width based on container padding */
+   height: 45px; /* Height of the button row */
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   position: absolute; /* Position at the bottom */
+   bottom: 10px; /* Align with container padding */
+   left: 15px; /* Align with container padding */
+   box-sizing: border-box;
+}
+
+/* Attach & Send Buttons */
+.attach-btn,
+.send-btn {
+   width: 42px; /* Slightly smaller */
+   height: 42px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 50%; /* Circle */
+   border: none;
+   background: #e9d5ff; /* Lighter purple background */
+   color: #8b5cf6; /* Purple icon */
+   font-size: 20px; /* Icon size */
+   flex-shrink: 0; /* Prevent shrinking */
+}
+
+.attach-btn:hover,
+.send-btn:hover {
+   background: #d8b4fe; /* Slightly darker hover */
+   transform: scale(1.05);
+}
+.send-btn:disabled { /* Style when disabled */
+    background: #f3f4f6;
+    color: #9ca3af;
+    transform: none;
+}
+
+
+/* Loading Indicator (Spinner) */
+#loadingIndicator {
+   display: inline-block; /* Or flex if using flex alignment */
+   vertical-align: middle; /* Align with buttons if needed */
+}
+.spinner { /* Basic spinner - style as needed */
+   border: 3px solid rgba(139, 92, 246, 0.2); /* Light purple */
+   width: 20px;
+   height: 20px;
+   border-radius: 50%;
+   border-left-color: #8b5cf6; /* Purple */
+   animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+   0% { transform: rotate(0deg); }
+   100% { transform: rotate(360deg); }
+}
+
+/* Material Icons default size */
+.material-icons {
+   font-size: 20px; /* Adjust as needed */
+   vertical-align: middle;
+}
