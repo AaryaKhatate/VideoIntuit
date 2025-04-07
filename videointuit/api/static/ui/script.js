@@ -158,28 +158,28 @@ document.addEventListener("DOMContentLoaded", function () {
     /**
      * Appends a message bubble to the chat area and scrolls down.
      */
-    function displayMessage(message, className) {
+    function displayMessage(messageOrHtml, className) {
         const messageBubble = document.createElement("div");
-        messageBubble.classList.add(className); // e.g., 'user-message'
-
-        const textNode = document.createElement("p");
-        textNode.textContent = message;
-        messageBubble.appendChild(textNode);
-
-        // --- TIMESTAMP REMOVED ---
-        // const timestamp = document.createElement("span");
-        // timestamp.classList.add("message-timestamp");
-        // timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        // messageBubble.appendChild(timestamp);
-        // --- END TIMESTAMP REMOVAL ---
-
-        chatMessages.prepend(messageBubble);
-
-        // *** CHANGE: Scroll chat area to the bottom ***
-        // Use the scrollable container (.chat-area) if #chatMessages doesn't scroll
-        // Assuming .chat-area is the scrollable one based on CSS
+        messageBubble.classList.add(className);
+    
+        if (className === 'assistant-message') {
+            if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                 const rawHtml = marked.parse(messageOrHtml); // messageOrHtml is the full answer string
+                 messageBubble.innerHTML = DOMPurify.sanitize(rawHtml);
+            } else {
+                 const textNode = document.createElement("p");
+                 textNode.textContent = messageOrHtml; // Fallback
+                 messageBubble.appendChild(textNode);
+            }
+        } else {
+            const textNode = document.createElement("p");
+            textNode.textContent = messageOrHtml;
+            messageBubble.appendChild(textNode);
+        }
+    
+        chatMessages.prepend(messageBubble); // Prepend for top display
         const scrollContainer = document.querySelector('.chat-area');
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        if(scrollContainer) scrollContainer.scrollTop = 0; // Scroll to top
     }
 
     /**
@@ -330,59 +330,74 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+
+    // Add these variables in the scope accessible by askQuestion for cahr by char printing
+    let isTyping = false; // Flag to check if typing effect is active
+    let chunkQueue = []; // Stores characters waiting to be typed
+    const TYPING_SPEED_MS = 30; // Milliseconds between characters (adjust for speed)
+    let typingIntervalId = null; // To store the interval ID
+    let assistantMessageBubble = null; // Reference to the current bubble
+    let accumulatedResponse = ""; // Keep track of the full response text
+    let currentScrollContainer = null; // Reference to the scroll container
+    let contentPlaceholder = null; // Reference to the element showing text
+
     /**
-     * Sends a text question to the backend.
-     */
-    function askQuestion(question) {
-        setProcessingState(true);
-        displayMessage(`${question}`, "user-message"); // Show user's question immediately
+ * Sends a text question to the backend via POST and displays the full response.
+ */
+function askQuestion(question) {
+    setProcessingState(true); // Disable input
+    displayMessage(`${question}`, "user-message"); // Show user's question immediately
 
-        fetch('/api/ask_question/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF token if needed
-            },
-            body: JSON.stringify({ question: question }),
-        })
-        .then(response => {
-             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error || `Server error: ${response.status}`);
-                 }).catch(() => {
-                     throw new Error(`Server error: ${response.status}`);
-                 });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            displayMessage(`${data.answer}`, "assistant-message"); // Display AI answer
-        })
-        .catch(error => {
-            console.error("Asking Question Error:", error);
-            displayMessage(`Error getting answer: ${error.message}`, "system-message error-message");
-        })
-        .finally(() => {
-            setProcessingState(false); // Re-enable input
-        });
-    }
+    // Use fetch to POST the question
+    fetch('/api/ask_question/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF token if needed
+        },
+        body: JSON.stringify({ question: question }), // Send question in JSON body
+    })
+    .then(response => {
+        // Check if the response is successful
+        if (!response.ok) {
+            // Try to parse error JSON from backend, otherwise use status text
+            return response.json().then(err => {
+                // Use the error message from backend response if available
+                throw new Error(err.error || `Server error: ${response.statusText}`);
+            }).catch(() => {
+                 // If parsing JSON error fails, just use status text
+                 throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            });
+        }
+        // Parse successful response as JSON
+        return response.json();
+    })
+    .then(data => {
+        // Check for application-level errors from the backend JSON
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        // Display the complete answer using the existing displayMessage function
+        if (data.answer) {
+            displayMessage(data.answer, "assistant-message");
+        } else {
+            // Handle cases where backend might not return an answer field
+             displayMessage("Received an empty response.", "system-message error-message");
+        }
+    })
+    .catch(error => {
+        // Handle any errors during fetch or processing
+        console.error("Asking Question Error:", error);
+        // Display the error message to the user
+        displayMessage(`Error: ${error.message}`, "system-message error-message");
+    })
+    .finally(() => {
+        // Re-enable input regardless of success or failure
+        setProcessingState(false);
+        console.log("Ask question fetch finished.");
+    });
+}
 
-    // ========================
-    // Other Event Listeners (Placeholders/Examples)
-    // ========================
-
-    if (shareButton) {
-        shareButton.addEventListener("click", shareChat);
-    }
-
-    if (signinButton) {
-        signinButton.addEventListener("click", function () {
-             alert("Sign-in functionality not implemented in this example.");
-        });
-    }
 
     // ========================
     // Chat Sharing Function (Example - adjusted for new message structure)
