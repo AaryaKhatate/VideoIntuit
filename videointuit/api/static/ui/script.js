@@ -1,54 +1,48 @@
 /**
  * Frontend JavaScript for Chat Interface
  * Handles user input, file uploads, API calls, and streaming AI responses.
+ * Includes client-side history management.
  */
 document.addEventListener("DOMContentLoaded", function () {
     // ========================
     // DOM Element Selection
     // ========================
     const messageInput = document.getElementById("messageInput");
-    const sendButton = document.getElementById("sendBtn"); // Ensure ID matches HTML
-    const attachButton = document.getElementById("attachBtn"); // Ensure ID matches HTML
-    const fileInput = document.getElementById("fileInput"); // Ensure ID matches HTML (hidden)
-    const filePreviewContainer = document.getElementById("filePreviewContainer"); // Ensure ID matches HTML
-    const chatMessages = document.getElementById("chatMessages"); // Container for message bubbles
-    const chatArea = document.querySelector(".chat-area"); // The scrollable container itself
-    const signinButton = document.getElementById("signin-button"); // Optional
-    const shareButton = document.querySelector(".share-btn"); // Optional
+    const sendButton = document.getElementById("sendBtn");
+    const attachButton = document.getElementById("attachBtn");
+    const fileInput = document.getElementById("fileInput");
+    const filePreviewContainer = document.getElementById("filePreviewContainer");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatArea = document.querySelector(".chat-area");
     const inputContainer = document.querySelector(".input-container");
-    // Ensure you have <div id="loadingIndicator" style="display: none;"></div> (e.g., a spinner)
     const loadingIndicator = document.getElementById("loadingIndicator");
+    const shareButton = document.querySelector(".share-btn"); // Optional
 
-    let selectedFiles = []; // Array to hold selected file objects
+    let selectedFiles = []; // Array to hold selected file objects for preview
     let isProcessing = false; // Flag to prevent multiple submissions
+    let currentVideoContext = false; // Flag to track if video context is loaded
+
+    // ** Client-side conversation history **
+    let chatHistory = []; // Stores { role: 'user'/'assistant', content: '...' }
 
     // ========================
     // UI State Management
     // ========================
     function setProcessingState(processing) {
         isProcessing = processing;
-        // Disable/enable inputs during processing
         if(messageInput) messageInput.disabled = processing;
         if(sendButton) sendButton.disabled = processing;
         if(attachButton) attachButton.disabled = processing;
 
-        // Show/hide loading indicator (e.g., spinner)
         if (loadingIndicator) {
             loadingIndicator.style.display = processing ? "inline-block" : "none";
         }
-
-        // Optional: Change send button icon/appearance during processing
         if (sendButton) {
-            if (!processing) {
-                 // Restore default send icon (assuming Material Icons, adjust if not)
+             if (!processing) {
                  sendButton.innerHTML = '<span class="material-icons">↑</span>';
-            } else {
-                 // Optional: Show a processing indicator on the button itself
-                 // sendButton.innerHTML = '<span class="material-icons">hourglass_empty</span>';
-            }
+             }
         }
     }
-    // Set initial state when the page loads
     setProcessingState(false);
 
     // ========================
@@ -56,43 +50,40 @@ document.addEventListener("DOMContentLoaded", function () {
     // ========================
     if (messageInput) {
         messageInput.addEventListener("input", function () {
-            this.style.height = "auto"; // Reset height
+            this.style.height = "auto";
             const scrollHeight = this.scrollHeight;
-            const maxHeight = 150; // Define a max-height (pixels)
-            // Set height based on content, up to max height
+            const maxHeight = 150;
             this.style.height = Math.min(scrollHeight, maxHeight) + "px";
-            // CSS 'overflow: auto;' should handle scrolling beyond max-height
         });
     }
 
     // ========================
     // File Handling Functions
     // ========================
+    // --- Keep updateFilePreview and removeFile functions exactly as they were ---
     function updateFilePreview() {
-        if (!filePreviewContainer) return; // Exit if container doesn't exist
+        if (!filePreviewContainer) return;
 
-        filePreviewContainer.innerHTML = ""; // Clear existing previews
-        // Adjust container padding slightly based on whether files are present
+        filePreviewContainer.innerHTML = "";
         if(inputContainer) {
             inputContainer.style.paddingTop = selectedFiles.length > 0 ? "15px" : "12px";
         }
 
         selectedFiles.forEach((file, index) => {
             const fileTag = document.createElement("div");
-            fileTag.classList.add("file-tag"); // Use class from your CSS
+            fileTag.classList.add("file-tag");
 
-            // Determine a simple icon based on file type
-            let icon = '📄'; // Default file icon
-            if (file.type.startsWith("image/")) icon = '🖼️'; // Image icon
-            if (file.type.startsWith("video/")) icon = '🎬'; // Video icon
-            if (file.type.startsWith("audio/")) icon = '🎵'; // Audio icon
+            let icon = '📄';
+            if (file.type.startsWith("video/")) icon = '🎬';
+            else if (file.type.startsWith("audio/")) icon = '🎵';
+            else if (file.type.startsWith("image/")) icon = '🖼️';
+
 
             const iconSpan = document.createElement("span");
             iconSpan.textContent = icon;
-            iconSpan.style.marginRight = "8px"; // Add some space after the icon
+            iconSpan.style.marginRight = "8px";
             fileTag.appendChild(iconSpan);
 
-            // Display filename, truncated if too long
             const fileName = document.createElement("span");
             const maxLen = 25;
             fileName.textContent = file.name.length > maxLen
@@ -100,117 +91,90 @@ document.addEventListener("DOMContentLoaded", function () {
                 : file.name;
             fileTag.appendChild(fileName);
 
-            // Add a remove button ('✖') for this file
             const removeBtn = document.createElement("button");
             removeBtn.textContent = "✖";
-            removeBtn.classList.add("remove-file-btn"); // Add class for specific styling
-            // Basic inline styles for the remove button (better to style via CSS class)
+            removeBtn.classList.add("remove-file-btn");
             removeBtn.style.background = 'none';
             removeBtn.style.border = 'none';
-            removeBtn.style.color = '#888'; // Adjust color as needed
+            removeBtn.style.color = '#888';
             removeBtn.style.marginLeft = '10px';
             removeBtn.style.cursor = 'pointer';
             removeBtn.style.fontSize = '14px';
-            removeBtn.setAttribute('aria-label', `Remove ${file.name}`); // Accessibility
+            removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
 
-            // Add click handler to remove the file
             removeBtn.onclick = (e) => {
-                e.stopPropagation(); // Prevent clicks triggering other actions
+                e.stopPropagation();
                 removeFile(index);
             };
             fileTag.appendChild(removeBtn);
-
-            // Add the completed tag to the preview container
             filePreviewContainer.appendChild(fileTag);
         });
     }
 
     function removeFile(indexToRemove) {
-        // Filter out the file at the specified index
         selectedFiles = selectedFiles.filter((_, index) => index !== indexToRemove);
-
-        // Update the actual <input type="file"> element's file list
         const dataTransfer = new DataTransfer();
         selectedFiles.forEach(file => dataTransfer.items.add(file));
         if (fileInput) {
             fileInput.files = dataTransfer.files;
         }
-
-        updateFilePreview(); // Refresh the visual preview area
+        updateFilePreview();
     }
 
     if (fileInput) {
         fileInput.addEventListener("change", function (event) {
             const newFiles = Array.from(event.target.files);
-
-            // Add newly selected files, avoiding duplicates (based on name & size)
+            // Clear existing selection preview before adding new ones
+            selectedFiles = [];
             newFiles.forEach(newFile => {
-                if (!selectedFiles.some(existingFile =>
-                    existingFile.name === newFile.name && existingFile.size === newFile.size
-                )) {
-                    selectedFiles.push(newFile);
-                }
+                // Optional: Add checks for file type or size here if needed
+                selectedFiles.push(newFile);
             });
 
-            // Update the file input's internal list to reflect the potentially filtered list
+            // Update the file input's internal list to match selection
             const dataTransfer = new DataTransfer();
             selectedFiles.forEach(file => dataTransfer.items.add(file));
             fileInput.files = dataTransfer.files;
 
-            updateFilePreview(); // Update the visual preview
+            updateFilePreview();
         });
     }
 
     if (attachButton) {
         attachButton.addEventListener("click", function () {
-            if (isProcessing || !fileInput) return; // Don't allow attaching while busy
-            fileInput.click();
+            if (isProcessing || !fileInput) return;
+            fileInput.click(); // Trigger hidden file input
         });
     }
 
     // ========================
     // Chat Message Functions
     // ========================
-
-    /**
-     * Creates and displays a message bubble in the chat area.
-     * Uses append() for standard chat order (newest at bottom).
-     * @param {string | HTMLElement} content - The text or HTML content for the message.
-     * @param {string} className - The CSS class for the bubble (e.g., 'user-message').
-     * @param {string} [id] - Optional unique ID for the message bubble element.
-     * @returns {HTMLElement} The created message bubble element.
-     */
     function displayMessage(content, className, id = null) {
-        if (!chatMessages) return null; // Exit if chat container doesn't exist
+        if (!chatMessages) return null;
 
         const messageBubble = document.createElement("div");
-        if (id) {
-            messageBubble.id = id; // Assign ID if provided
-        }
-        messageBubble.classList.add(className); // Apply styling class
+        if (id) messageBubble.id = id;
+        messageBubble.classList.add(className);
 
-        // Use a <p> tag internally for better structure and targeting
         const textContentElement = document.createElement("p");
         if (typeof content === 'string') {
-            textContentElement.textContent = content; // Set text if string
+             // Basic check for potential HTML, treat as text otherwise
+             // More robust sanitization happens later if using Markdown
+             textContentElement.textContent = content;
         } else if (content instanceof HTMLElement) {
-             textContentElement.appendChild(content); // Append if already an element
+             textContentElement.appendChild(content);
         }
         messageBubble.appendChild(textContentElement);
 
-        // *** CHANGE: Use append instead of prepend ***
-        chatMessages.append(messageBubble);
+        chatMessages.append(messageBubble); // Append to bottom
 
-        // *** CHANGE: Scroll to the bottom ***
         if (chatArea) {
-            // Scroll the main scrollable container to its maximum height
-            chatArea.scrollTop = chatArea.scrollHeight;
+            chatArea.scrollTop = chatArea.scrollHeight; // Scroll down
         }
-
-        return messageBubble; // Return the created element
+        return messageBubble;
     }
 
-    // --- Keep the removeMessageById function as it is ---
     function removeMessageById(id) {
         const messageToRemove = document.getElementById(id);
         if (messageToRemove) {
@@ -219,98 +183,113 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
-     * Sends a text question to the backend and streams the response into a message bubble.
+     * Sends a text question (with history) to the backend and streams the response.
+     * Updates client-side history on successful completion.
      * @param {string} question - The question text to send.
      */
     async function askQuestion(question) {
-        setProcessingState(true); // Indicate processing
-        displayMessage(question, "user-message"); // Show the user's question
+        setProcessingState(true);
+        displayMessage(question, "user-message"); // Show user's question
+         // ** Add user question to history immediately **
+        chatHistory.push({ role: "user", content: question });
 
-        const thinkingStatusId = `thinking-${Date.now()}`; // Unique ID for temp message
+        const thinkingStatusId = `thinking-${Date.now()}`;
         displayMessage("🤔 Assistant is thinking...", "system-message", thinkingStatusId);
 
-        let assistantBubble = null; // Reference to the assistant's message bubble
-        let contentElement = null; // Reference to the <p> tag inside the bubble
-        let accumulatedAnswer = ""; // Store the full response text
+        let assistantBubble = null;
+        let contentElement = null;
+        let accumulatedAnswer = ""; // Store the full response text for history
 
         try {
-            // API call to the question endpoint (ensure URL is correct)
-            // Make sure '/api/ask_question/' matches your urls.py
-            const response = await fetch('/api/ask_question/', {
+            // API call, now includes client-side history
+            const response = await fetch('/api/ask_question/', { // Ensure URL matches urls.py
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     // 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF if needed
                 },
-                body: JSON.stringify({ question: question }),
+                // ** Send current question AND history **
+                body: JSON.stringify({
+                    question: question,
+                    history: chatHistory.slice(0, -1) // Send history *before* this question
+                }),
             });
 
-            // --- Handle non-OK HTTP responses BEFORE attempting to stream ---
             if (!response.ok) {
-                removeMessageById(thinkingStatusId); // Remove "Thinking..." message
+                removeMessageById(thinkingStatusId);
                 let errorMsg = `Server error: ${response.status} ${response.statusText}`;
                 try {
-                     // Try to get more specific error from backend JSON response
                      const err = await response.json();
                      errorMsg = err.error || errorMsg;
                 } catch { /* Ignore if error response isn't JSON */ }
-                throw new Error(errorMsg); // Throw error to be caught below
+                throw new Error(errorMsg);
             }
 
-            // --- Response is OK, prepare for streaming ---
-            removeMessageById(thinkingStatusId); // Remove "Thinking..."
+            // --- Response OK, prepare for streaming ---
+            removeMessageById(thinkingStatusId);
             assistantBubble = displayMessage("", "assistant-message"); // Create empty bubble
-            contentElement = assistantBubble?.querySelector('p'); // Target the <p> tag
+            contentElement = assistantBubble?.querySelector('p');
 
-            // Ensure we have a target element before proceeding
             if (!contentElement) {
                 throw new Error("Could not create assistant message bubble.");
             }
 
-            const reader = response.body.getReader(); // Get stream reader
-            const decoder = new TextDecoder(); // To decode UTF-8 stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
             let reading = true;
 
-            // Read chunks from the stream
             while (reading) {
                 const { done, value } = await reader.read();
                 if (done) {
-                    reading = false; // Exit loop when stream ends
+                    reading = false;
                     break;
                 }
-                // Decode chunk and append to display
                 const chunk = decoder.decode(value, { stream: true });
-                accumulatedAnswer += chunk;
-                contentElement.textContent = accumulatedAnswer; // Update the bubble content
+                accumulatedAnswer += chunk; // Accumulate full response
+                contentElement.textContent = accumulatedAnswer; // Update display
 
-                // Keep scrolling to show the latest text
-                if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+                if (chatArea) chatArea.scrollTop = chatArea.scrollHeight; // Keep scrolled down
             }
 
             // --- Stream finished ---
-            // Optional: Apply Markdown/Sanitization to the complete response
-            if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-                 try {
-                     const rawHtml = marked.parse(accumulatedAnswer); // Convert full text
-                     contentElement.innerHTML = DOMPurify.sanitize(rawHtml); // Sanitize and set HTML
-                     if (chatArea) chatArea.scrollTop = chatArea.scrollHeight; // Re-scroll after potentially large render
-                 } catch(e) { console.error("Markdown/DOMPurify error on final answer:", e); }
-            }
+            // ** Add successful assistant response to history **
+            if (accumulatedAnswer && !accumulatedAnswer.includes("--- Error:")) {
+                 chatHistory.push({ role: "assistant", content: accumulatedAnswer });
+            } else if (!accumulatedAnswer) {
+                 // Handle case where stream finished but was empty (maybe backend yielded nothing)
+                 chatHistory.push({ role: "assistant", content: "(AI returned no content)" });
+            } // Don't add error messages to history as assistant turns
 
-        } catch (error) { // Catch fetch errors or errors thrown from response handling
+            // Optional: Apply Markdown/Sanitization to the final complete response
+             if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                  try {
+                       const rawHtml = marked.parse(accumulatedAnswer);
+                       contentElement.innerHTML = DOMPurify.sanitize(rawHtml);
+                       if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+                  } catch(e) { console.error("Markdown/DOMPurify error on final answer:", e); }
+             }
+
+        } catch (error) {
             console.error("Asking Question Error:", error);
-            removeMessageById(thinkingStatusId); // Ensure "Thinking..." is removed
-            // Display error message distinctively
-            if (assistantBubble && contentElement) {
-                // If stream started, append error info for context
-                contentElement.textContent = accumulatedAnswer + `\n\n--- Error: ${error.message} ---`;
-            } else {
-                // If fetch failed before creating the bubble
-                displayMessage(`❌ Error: ${error.message}`, "error-message");
-            }
+            removeMessageById(thinkingStatusId); // Ensure thinking removed
+            // Update the last user message in history to indicate failure? Or just display error?
+            // Let's just display error for now.
+             if (assistantBubble && contentElement) {
+                 // If stream started, show error inline
+                 contentElement.textContent = accumulatedAnswer + `\n\n--- Error: ${error.message} ---`;
+                 // Remove the failed assistant turn from history if it was added prematurely
+                 // (Current logic adds only after successful stream, which is safer)
+             } else {
+                 // If fetch failed before creating the bubble
+                 displayMessage(`❌ Error: ${error.message}`, "error-message");
+             }
+             // Remove the user message that caused the error from history
+             if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+                 chatHistory.pop();
+             }
         } finally {
             setProcessingState(false); // Re-enable input fields
-            console.log("Ask question processing finished.");
+            console.log("Ask question processing finished. History length:", chatHistory.length);
         }
     }
 
@@ -318,10 +297,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Sending Logic (Main Action)
     // ========================
     function sendMessage() {
-        if (isProcessing || !messageInput) return; // Exit if busy or input missing
+        if (isProcessing || !messageInput) return;
 
         const messageText = messageInput.value.trim();
-        // Regex to detect YouTube URLs (various formats)
         const youtubeUrlRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
         const youtubeUrlMatch = messageText.match(youtubeUrlRegex);
         let questionForVideo = ""; // Store question associated with video/file
@@ -329,71 +307,83 @@ document.addEventListener("DOMContentLoaded", function () {
         // --- Determine Action Priority: File > URL > Text ---
         if (selectedFiles.length > 0) {
             // --- Action: Process File ---
-            questionForVideo = messageText; // Assume any text is a question for the file
-            const fileToProcess = selectedFiles[0]; // Process the first selected file
+             // ** A file upload implies a new context, clear history **
+            console.log("New file upload detected, clearing client history.");
+            chatHistory = [];
+            currentVideoContext = false; // Mark context as not ready yet
 
-            // Display user's intent
+            questionForVideo = messageText; // Assume any text is question for the file
+            // ** IMPORTANT: Only process the FIRST selected file **
+            const fileToProcess = selectedFiles[0];
+
             displayMessage(`Attaching file: ${fileToProcess.name}`, "user-message");
              if (questionForVideo) {
-                 // Show the question that will be asked after processing
-                 displayMessage(`Question: ${questionForVideo}`, "system-message");
+                 displayMessage(`Initial question: ${questionForVideo}`, "system-message");
+                 // Add user's intent to history (even though history is cleared,
+                 // this first entry helps if an initial answer comes back)
+                 // Actually, let processVideo handle history init based on response.
              }
 
-            // Prepare form data
             const formData = new FormData();
-            formData.append('videoFile', fileToProcess); // Key expected by backend
+            formData.append('videoFile', fileToProcess);
              if (questionForVideo) {
-                formData.append('question', questionForVideo); // Add question if present
+                 formData.append('question', questionForVideo);
              }
 
-            processVideo(formData); // Call backend function
+            processVideo(formData, questionForVideo); // Pass question separately for history init
 
             // Clear inputs *after* initiating the process
             selectedFiles = [];
-            if(fileInput) fileInput.value = ""; // Clear the actual file input element
+            if(fileInput) fileInput.value = "";
             updateFilePreview();
             messageInput.value = "";
-            messageInput.style.height = 'auto'; // Reset textarea height
+            messageInput.style.height = 'auto';
 
         } else if (youtubeUrlMatch) {
             // --- Action: Process URL ---
+            // ** A URL implies a new context, clear history **
+            console.log("New URL detected, clearing client history.");
+            chatHistory = [];
+            currentVideoContext = false;
+
             const videoUrl = youtubeUrlMatch[0];
-            // Extract text that is *not* the URL as the question
             questionForVideo = messageText.replace(videoUrl, "").trim();
 
             displayMessage(`Video URL: ${videoUrl}`, "user-message");
              if (questionForVideo) {
-                 displayMessage(`Question: ${questionForVideo}`, "system-message");
+                 displayMessage(`Initial question: ${questionForVideo}`, "system-message");
              }
 
             // Send URL and optional question as JSON
-            processVideo({ videoUrl: videoUrl, question: questionForVideo });
+            processVideo({ videoUrl: videoUrl, question: questionForVideo }, questionForVideo); // Pass question
 
-            // Clear text input after initiating process
             messageInput.value = "";
             messageInput.style.height = 'auto';
 
         } else if (messageText) {
             // --- Action: Send Text Question ---
-            askQuestion(messageText); // Handles displaying user message internally now
-            // Clear text input after sending
+            // Check if video context is loaded before asking
+            // The backend handles this now, so we can just send.
+            // if (!currentVideoContext) {
+            //     displayMessage("Please upload a video file or provide a video URL first before asking questions.", "system-message error-message");
+            //     setProcessingState(false); // Re-enable if we blocked it
+            //     return;
+            // }
+            askQuestion(messageText); // Handles history internally now
             messageInput.value = "";
             messageInput.style.height = 'auto';
         } else {
             // --- Action: Nothing Entered ---
-            displayMessage("Please enter a message, provide a Video URL, or attach a video file.", "system-message error-message"); // Use error class
+            displayMessage("Please enter a message, provide a Video URL, or attach a video file.", "system-message error-message");
         }
     }
 
     // Attach send logic to button and Enter key
-    if (sendButton) {
-        sendButton.addEventListener("click", sendMessage);
-    }
+    if (sendButton) sendButton.addEventListener("click", sendMessage);
     if (messageInput) {
-        // Listen for Enter key (but not Shift+Enter for newlines)
         messageInput.addEventListener("keydown", function (event) {
             if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault(); // Prevent inserting a newline
+                event.preventDefault();
                 sendMessage();
             }
         });
@@ -404,142 +394,116 @@ document.addEventListener("DOMContentLoaded", function () {
     // ========================
 
     /**
-     * Sends video file or URL (with optional question) to the backend for processing.
-     * Handles the response, including potential initial answer.
+     * Sends video file or URL (with optional initial question) to the backend.
+     * Initializes client-side history if an initial answer is received.
      * @param {FormData|Object} videoData - Data to send (FormData or {videoUrl, question}).
+     * @param {string} [initialQuestion=''] - The initial question asked, for history init.
      */
-    function processVideo(videoData) {
-        setProcessingState(true); // Indicate processing started
-        const processingStatusId = `status-${Date.now()}`; // Unique ID for temporary message
-        // Display temporary status message
+    function processVideo(videoData, initialQuestion = '') {
+        setProcessingState(true);
+        currentVideoContext = false; // Context is processing, not ready
+        const processingStatusId = `status-${Date.now()}`;
         displayMessage("⏳ Uploading and processing video...", "system-message", processingStatusId);
 
         let fetchBody;
-        let headers = {
-             // 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF if needed
-        };
+        let headers = { /* 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF if needed */ };
 
-        // Determine body type and headers based on input
         if (videoData instanceof FormData) {
-            fetchBody = videoData; // Use FormData directly
-            // Browser sets Content-Type with boundary for FormData automatically
-        } else { // JSON for URL
+            fetchBody = videoData;
+        } else {
             fetchBody = JSON.stringify(videoData);
             headers['Content-Type'] = 'application/json';
         }
 
-        // API call to the upload endpoint (ensure URL is correct)
-        // Make sure '/api/upload_video/' matches your urls.py
-        fetch('/api/upload_video/', {
+        // API call to upload endpoint
+        fetch('/api/upload_video/', { // Ensure URL matches urls.py
             method: 'POST',
             headers: headers,
             body: fetchBody,
         })
         .then(response => {
-            removeMessageById(processingStatusId); // Remove temporary status message
-            // Check for HTTP errors (e.g., 404, 500)
+            removeMessageById(processingStatusId);
             if (!response.ok) {
-                // Try to parse a JSON error message from the backend
                 return response.json().then(err => {
                     throw new Error(err.error || `Server error: ${response.status}`);
-                }).catch(() => { // Fallback if error response isn't JSON
+                }).catch(() => {
                     throw new Error(`Server error: ${response.status} ${response.statusText}`);
                 });
             }
-            return response.json(); // Parse successful JSON response
+            return response.json();
         })
         .then(data => {
-            // Check for application-level errors returned in the JSON data
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            // Display backend's success message
-            displayMessage(`✅ ${data.message || 'Video processed.'}`, "system-message");
+            if (data.error) throw new Error(data.error);
 
-            // **Handle potential initial answer returned by the backend**
-            if (data.answer) {
-                const assistantBubble = displayMessage(data.answer, "assistant-message");
-                // Apply Markdown/Sanitization if libraries are present
-                const contentElement = assistantBubble?.querySelector('p');
-                if (contentElement && typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-                     try {
-                         const rawHtml = marked.parse(data.answer); // Convert Markdown to HTML
-                         contentElement.innerHTML = DOMPurify.sanitize(rawHtml); // Sanitize and set HTML
-                          if (chatArea) chatArea.scrollTop = chatArea.scrollHeight; // Re-scroll after render
-                     } catch(e) { console.error("Markdown/DOMPurify error on initial answer:", e); }
-                }
+            displayMessage(`✅ ${data.message || 'Video processed.'}`, "system-message");
+            currentVideoContext = true; // Mark context as ready
+
+            // ** Initialize history if initial question was asked AND answered **
+            if (initialQuestion && data.answer) {
+                 chatHistory = [
+                     { role: 'user', content: initialQuestion },
+                     { role: 'assistant', content: data.answer }
+                 ];
+                 console.log("Initialized history with initial Q&A.");
+                 // Display the initial answer properly
+                 const assistantBubble = displayMessage(data.answer, "assistant-message");
+                 // Optional Markdown/Sanitization
+                 const contentElement = assistantBubble?.querySelector('p');
+                  if (contentElement && typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                       try {
+                            const rawHtml = marked.parse(data.answer);
+                            contentElement.innerHTML = DOMPurify.sanitize(rawHtml);
+                             if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+                       } catch(e) { console.error("Markdown/DOMPurify error on initial answer:", e); }
+                  }
+            } else {
+                // If no initial question or no answer came back, history remains empty
+                chatHistory = [];
+                console.log("No initial Q&A, history is empty.");
             }
         })
         .catch(error => {
-            // Catch fetch errors or errors thrown from .then blocks
-            removeMessageById(processingStatusId); // Ensure status message removal on error
+            removeMessageById(processingStatusId);
             console.error("Processing Error:", error);
-            // Display error message to the user
             displayMessage(`❌ Error processing video: ${error.message}`, "error-message");
+            currentVideoContext = false; // Context failed to load
+            chatHistory = []; // Clear history on error too
         })
         .finally(() => {
-            setProcessingState(false); // Re-enable inputs regardless of outcome
+            setProcessingState(false);
         });
     }
 
 
     // ========================
-    // Chat Sharing Function (Optional)
+    // Chat Sharing Function (Uses client history)
     // ========================
     function shareChat() {
-        if (!chatMessages) return;
-        let chatText = "";
-        // Get message bubbles in visual order (reverse DOM order due to prepend)
-        const messages = Array.from(chatMessages.children).reverse();
-
-        messages.forEach(msg => {
-            let role = "System"; // Default role
-            if (msg.classList.contains("user-message")) role = "User";
-            else if (msg.classList.contains("assistant-message")) role = "Assistant";
-            else if (msg.classList.contains("error-message")) role = "Error";
-
-            // Get text content, preferring the inner <p> tag
-            const text = msg.querySelector("p")?.textContent || msg.textContent || "";
-            chatText += `${role}: ${text.trim()}\n\n`; // Format with role and spacing
-        });
-
-        if (!chatText.trim()) {
-            alert("No chat messages to share.");
-            return;
+        if (chatHistory.length === 0) {
+             alert("No chat history to share.");
+             return;
         }
 
-        // Use Clipboard API to copy text
+        let chatText = "Chat History:\n\n";
+        chatHistory.forEach(msg => {
+             // Simple formatting, adjust as needed
+             chatText += `${msg.role.charAt(0).toUpperCase() + msg.role.slice(1)}: ${msg.content}\n\n`;
+        });
+
         navigator.clipboard.writeText(chatText.trim())
-            .then(() => alert("Chat copied to clipboard!"))
+            .then(() => alert("Chat history copied to clipboard!"))
             .catch(err => {
                 console.error("Failed to copy chat:", err);
                 alert("Failed to copy chat. See console for details.");
             });
     }
-     // Add event listener if the share button exists
      if (shareButton) {
          shareButton.addEventListener('click', shareChat);
      }
 
     // ========================
-    // CSRF Token Helper (Only needed if NOT using @csrf_exempt in Django)
+    // CSRF Token Helper (If needed)
     // ========================
-    /*
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    */
+    /* function getCookie(name) { ... } */
 
 }); // End DOMContentLoaded
