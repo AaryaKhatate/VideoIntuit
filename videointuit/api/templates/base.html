@@ -6,11 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}VideoIntuit{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'ui/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'ui/accounts.css' %}"> 
+    <link rel="stylesheet" href="{% static 'ui/accounts.css' %}">
+    <script src="{% static 'ui/script.js' %}"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     {% block head %}{% endblock %}
 </head>
 <body>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     {% block content %}
     {% endblock %}
 </body>
