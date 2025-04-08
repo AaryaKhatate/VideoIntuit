@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputContainer = document.querySelector(".input-container");
     const loadingIndicator = document.getElementById("loadingIndicator");
     const shareButton = document.querySelector(".share-btn"); // Optional
+    const analyzeFullTranscriptCheckbox = document.getElementById("analyzeFullTranscript"); // Example checkbox
 
     let selectedFiles = []; // Array to hold selected file objects for preview
     let isProcessing = false; // Flag to prevent multiple submissions
@@ -299,10 +300,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage() {
         if (isProcessing || !messageInput) return;
 
-        const messageText = messageInput.value.trim();
-        const youtubeUrlRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        let messageText = messageInput.value.trim();
+        const youtubeUrlRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
         const youtubeUrlMatch = messageText.match(youtubeUrlRegex);
-        let questionForVideo = ""; // Store question associated with video/file
+        let questionForVideo = "";
 
         // --- Determine Action Priority: File > URL > Text ---
         if (selectedFiles.length > 0) {
@@ -339,7 +340,19 @@ document.addEventListener("DOMContentLoaded", function () {
             messageInput.value = "";
             messageInput.style.height = 'auto';
 
-        } else if (youtubeUrlMatch) {
+        } else if (messageText.startsWith("http://") || messageText.startsWith("https://")) {
+            // --- Action: Process Any URL ---
+            console.log("Generic URL detected, attempting to process.");
+            chatHistory = [];
+            currentVideoContext = false;
+
+            questionForVideo = ""; // No specific question extraction from URL itself
+            displayMessage(`Processing URL: ${messageText}`, "user-message");
+
+            processVideo({ videoUrl: messageText, question: "" }, ""); // Send full URL
+            messageInput.value = "";
+            messageInput.style.height = 'auto';
+        }else if (youtubeUrlMatch) {
             // --- Action: Process URL ---
             // ** A URL implies a new context, clear history **
             console.log("New URL detected, clearing client history.");
@@ -361,15 +374,11 @@ document.addEventListener("DOMContentLoaded", function () {
             messageInput.style.height = 'auto';
 
         } else if (messageText) {
-            // --- Action: Send Text Question ---
-            // Check if video context is loaded before asking
-            // The backend handles this now, so we can just send.
-            // if (!currentVideoContext) {
-            //     displayMessage("Please upload a video file or provide a video URL first before asking questions.", "system-message error-message");
-            //     setProcessingState(false); // Re-enable if we blocked it
-            //     return;
-            // }
-            askQuestion(messageText); // Handles history internally now
+            let questionToSend = messageText;
+            if (analyzeFullTranscriptCheckbox && analyzeFullTranscriptCheckbox.checked) {
+                questionToSend = "analyze full transcript " + messageText;
+            }
+            askQuestion(questionToSend);
             messageInput.value = "";
             messageInput.style.height = 'auto';
         } else {

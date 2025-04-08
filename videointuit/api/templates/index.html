@@ -46,6 +46,13 @@
             <button class="share-btn" onclick="shareChat()">
                 <span class="material-icons">share</span> Share
             </button>
+            <div class="theme-toggle">
+                <input type="checkbox" id="themeSwitch">
+                <label class="theme-label" for="themeSwitch">
+                    <span class="material-icons light-icon">light_mode</span>
+                    <span class="material-icons dark-icon">dark_mode</span>
+                </label>
+            </div>
             {% if user.is_authenticated %}
                 <div class="user-profile-toggle" style="position: relative; display: inline-block;">
                     <div class="user-initial-icon" onclick="toggleLogoutButton()" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; background-color: #8b5cf6; color: white; display: flex; justify-content: center; align-items: center; font-size: 16px; margin-right: 8px;">
@@ -77,6 +84,21 @@
                     window.location.href = "{{ logout_url }}";
                 }
             }
+
+            // Dark/Light Mode Toggle
+            const themeSwitch = document.getElementById('themeSwitch');
+            const body = document.body;
+            const currentTheme = localStorage.getItem('theme');
+
+            if (currentTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeSwitch.checked = true;
+            }
+
+            themeSwitch.addEventListener('change', function() {
+                body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+            });
         </script>
     </header>
 
@@ -92,9 +114,9 @@
         <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
 
         <div class="input-container-buttons">
-            <button class="attach-btn" id="attachBtn">+</button>
+            <button class="attach-btn" id="attachBtn" title="Add Video">+</button>
             <span id="loadingIndicator" class="loading-spinner" style="display: none;"></span>
-            <button class="send-btn" id="sendBtn">↑</button>
+            <button class="send-btn" id="sendBtn" title="Send Message">↑</button>
         </div>
     </section>
 
