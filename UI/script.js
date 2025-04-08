@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     // ========================
-    // DOM Element Selection
+    // DOM Elements
     // ========================
     const inputField = document.getElementById("messageInput");
     const sendButton = document.getElementById("sendBtn");
@@ -15,53 +15,83 @@ document.addEventListener("DOMContentLoaded", function () {
     let selectedFiles = [];
 
     // ========================
-    // Dynamic Text Area Expansion
-    // ========================
-    inputField.addEventListener("input", function () {
-        this.style.height = "20px"; // Reset to single-line height
-        this.style.height = Math.min(this.scrollHeight, 24 * 9) + "px"; // Expand but limit to 9 lines
-    });
-
-    // ========================
-    // File Handling Functions
+    // File Handling
     // ========================
 
-    /**
-     * Updates the file preview section with selected files.
-     */
     function updateFilePreview() {
         filePreviewContainer.innerHTML = "";
 
-        inputContainer.style.minHeight = selectedFiles.length > 0 ? "160px" : "120px"; // Adjust container height
+        if (selectedFiles.length > 0) {
+            filePreviewContainer.style.display = "flex";
+            inputContainer.classList.add("expanded");
 
-        selectedFiles.forEach(file => {
-            const fileTag = document.createElement("div");
-            fileTag.classList.add("file-tag");
-            fileTag.textContent = file.name;
-            filePreviewContainer.appendChild(fileTag);
-        });
+            selectedFiles.forEach((file, index) => {
+                const fileTag = document.createElement("div");
+                fileTag.classList.add("file-tag");
+
+                const icon = document.createElement("i");
+                icon.classList.add("fas", "fa-video", "file-icon");
+
+                const fileName = document.createElement("span");
+                fileName.textContent = file.name;
+
+                const closeBtn = document.createElement("span");
+                closeBtn.classList.add("file-close");
+                closeBtn.innerHTML = "&times;";
+                closeBtn.title = "Remove file";
+
+                closeBtn.addEventListener("click", () => {
+                    selectedFiles.splice(index, 1);
+                    updateFilePreview();
+                    fileInput.value = "";
+                });
+
+                fileTag.appendChild(icon);
+                fileTag.appendChild(fileName);
+                fileTag.appendChild(closeBtn);
+
+                filePreviewContainer.appendChild(fileTag);
+            });
+        } else {
+            filePreviewContainer.style.display = "none";
+            inputContainer.classList.remove("expanded");
+        }
     }
 
-    /**
-     * Handles file selection when files are chosen.
-     */
+    function autoResizeInput() {
+        inputField.style.height = "45px";
+        const scrollHeight = inputField.scrollHeight;
+        const maxHeight = 1.5 * 16 * 6 + 20;
+
+        if (scrollHeight <= maxHeight) {
+            inputField.style.overflowY = "hidden";
+            inputField.style.height = scrollHeight + "px";
+        } else {
+            inputField.style.overflowY = "auto";
+            inputField.style.height = maxHeight + "px";
+        }
+    }
+
     fileInput.addEventListener("change", function () {
-        selectedFiles = [...fileInput.files]; // Reset selected files to prevent duplication
+        const validVideos = [...fileInput.files].filter(file => file.type.startsWith("video/"));
+
+        for (const file of validVideos) {
+            const alreadyAdded = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+            if (!alreadyAdded) {
+                selectedFiles.push(file);
+            }
+        }
+
         updateFilePreview();
+        fileInput.value = "";
     });
 
-    // Opens the file manager when the attach button is clicked
-    attachButton.addEventListener("click", function () {
-        fileInput.click();
-    });
+    attachButton.addEventListener("click", () => fileInput.click());
 
     // ========================
-    // Chat Message Functions
+    // Chat Messaging
     // ========================
 
-    /**
-     * Sends a message and appends it to the chat area.
-     */
     function sendMessage() {
         const messageText = inputField.value.trim();
         if (!messageText && selectedFiles.length === 0) return;
@@ -69,7 +99,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const messageBubble = document.createElement("div");
         messageBubble.classList.add("user-message");
 
-        // Display selected files in the chat
         if (selectedFiles.length > 0) {
             const fileContainer = document.createElement("div");
             fileContainer.classList.add("file-container");
@@ -84,7 +113,6 @@ document.addEventListener("DOMContentLoaded", function () {
             messageBubble.appendChild(fileContainer);
         }
 
-        // Display message text in the chat
         if (messageText) {
             const textNode = document.createElement("p");
             textNode.classList.add("message-text");
@@ -92,24 +120,21 @@ document.addEventListener("DOMContentLoaded", function () {
             messageBubble.appendChild(textNode);
         }
 
-        // Add message to the top of chat
         chatMessages.prepend(messageBubble);
 
-        // Reset input field and selected files
         inputField.value = "";
         selectedFiles = [];
         updateFilePreview();
+        autoResizeInput();
     }
 
     // ========================
-    // Chat Sharing Function
+    // Chat Sharing
     // ========================
 
-    /**
-     * Copies chat messages to the clipboard.
-     */
     function shareChat() {
         let chatText = "";
+
         document.querySelectorAll(".user-message .message-text").forEach(msg => {
             chatText += msg.textContent + "\n\n";
         });
@@ -129,6 +154,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ========================
 
     sendButton.addEventListener("click", sendMessage);
+
+    inputField.addEventListener("input", autoResizeInput);
 
     inputField.addEventListener("keydown", function (event) {
         if (event.key === "Enter" && !event.shiftKey) {

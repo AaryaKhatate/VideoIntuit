@@ -1,94 +1,79 @@
-{% load static %}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VideoIntuit</title>
-
-    <link rel="stylesheet" href="{% static 'ui/styles.css' %}">
-
-    <script defer src="{% static 'ui/script.js' %}"></script>
+    <link rel="stylesheet" href="/static/ui/styles.css"> <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@latest/dist/purify.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <div class="sidebar">
+        <h1 class="app-name1">VideoIntuit</h1>
         <div class="sidebar-buttons">
-            <button class="newChat-btn">
-                <span class="material-icons">add</span>
-            </button>
-            <button class="search-btn">
-                <span class="material-icons">search</span>
-            </button>
-            <button class="close-btn" onclick="closeSidebar()">
-                <span class="material-icons">close</span>
-            </button>
-        </div>
-        <div class="app-name1">VideoIntuit</div>
-        <ul class="sidebar-menu">
-            <li>History</li>
-        </ul>
-    </aside>
+            </div>
+        <ul>
+            <li>History Item 1</li>
+            <li>History Item 2</li>
+            </ul>
+         </div>
 
-    <main class="main-container">
-
-        <header class="header">
-            <div class="app-name">VideoIntuit</div>
+    <div class="main-container">
+        <div class="header">
+            <span class="app-name">VideoIntuit</span>
             <div class="header-buttons">
-                <button class="share-btn" onclick="shareChat()">
+                <button class="share-btn">
                     <span class="material-icons">share</span> Share
                 </button>
                 <div id="signin-button" onclick="window.location.href='{{ login_url }}'" style="cursor: pointer;">
                     DEBUG TEXT <span class="material-icons">person</span>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <section class="chat-area">
-            <div class="chat-messages" id="chatMessages">
+        <div class="chat-area">
+            <div id="chatMessages">
+                 </div>
+        </div>
+
+        <div class="input-container">
+            <div id="filePreviewContainer" class="file-preview-container">
                 </div>
-        </section>
-
-        <section class="input-container">
-            <section class="file-preview-container" id="filePreviewContainer"></section>
-
-            <input type="file" id="fileInput" hidden multiple>
-            <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
-
-            <div class="input-container-buttons">
-                <button class="attach-btn" id="attachBtn">+</button>
-                <span id="loadingIndicator" class="loading-spinner" style="display: none;"></span>
-                <button class="send-btn" id="sendBtn">↑</button>
+            <div class="input-wrapper">
+                 <textarea id="messageInput" placeholder="Message VideoIntuit..." rows="1"></textarea>
             </div>
-        </section>
+            <div class="input-container-buttons">
+                <button id="attachBtn" class="attach-btn" aria-label="Attach file">
+                    <span class="material-icons">add</span>
+                </button>
+                <input type="file" id="fileInput" accept="video/*,audio/*" style="display: none;" multiple>
 
-        <script>
-            function focusInput() {
-                document.getElementById("messageInput").focus();
-            }
+                 <div id="loadingIndicator" style="display: none; margin: 0 10px;">
+                      <div class="spinner"></div> </div>
 
-            // Initial focus
-            window.onload = focusInput;
+                <button id="sendBtn" class="send-btn" aria-label="Send message">
+                    <span class="material-icons">↑</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-            // Re-focus on keydown anywhere might be annoying, consider focusing only when clicking in the main area or input
-            // document.addEventListener("keydown", function() {
-            //     focusInput();
-            // });
-
-            // Better: Re-focus when clicking outside the input but inside the main container perhaps
-             document.querySelector('.main-container').addEventListener('click', (event) => {
-                 // Avoid refocusing if clicking on interactive elements like buttons or the input itself
-                 if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'TEXTAREA' && event.target.id !== 'signin-button' && !event.target.closest('.sidebar')) {
-                    focusInput();
-                 }
-             });
-
-        </script>
-
-    </main>
-
-</body>
+    <script src="/static/ui/script.js"></script> </body>
 </html>
+
+<style>
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border-left-color: #8b5cf6; /* Match theme color */
+        animation: spin 1s ease infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>

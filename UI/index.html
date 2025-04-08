@@ -12,6 +12,10 @@
     <script defer src="script.js"></script>
 
     <!-- Font Awesome & Google Icons -->
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -59,17 +63,25 @@
 
         <!-- Input Container -->
         <section class="input-container">
-            <!-- File Preview -->
-            <section class="file-preview-container" id="filePreviewContainer"></section>
+            <!-- Wrapper to allow flexible resizing -->
+            <div class="input-top">
+                <!-- File Preview -->
+                <section class="file-preview-container" id="filePreviewContainer">
+                    
+                </section>
 
-            <input type="file" id="fileInput" hidden multiple>
-            <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
-            
+                <textarea id="messageInput" placeholder="Message VideoIntuit ..."></textarea>
+            </div>
+
+            <input type="file" id="fileInput" hidden multiple accept="video/*">
+
             <div class="input-container-buttons">
                 <button class="attach-btn" id="attachBtn">+</button>
                 <button class="send-btn" id="sendBtn">↑</button>
             </div>
+            
         </section>
+
 
         <!-- Auto-focus Script -->
         <script>
