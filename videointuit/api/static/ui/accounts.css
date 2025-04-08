@@ -1,0 +1,101 @@
+/* accounts.css */
+
+body {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Ensure full viewport height */
+    margin: 0;
+    background-color: #f8f9fc; /* Match index page background */
+    font-family: Arial, sans-serif; /* Consistent font */
+    color: #333; /* Default text color */
+}
+
+.form-container {
+    background-color: #fff; /* White container background */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 400px; /* Adjust as needed */
+    max-width: 90%; /* Ensure responsiveness */
+}
+
+.form-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+button[type="submit"] {
+    background-color: #8b5cf6; /* Example primary color */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #7c3aed;
+}
+
+.form-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.form-actions a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.form-actions a:hover {
+    text-decoration: underline;
+}
+
+.messages {
+    list-style: none;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.messages.error {
+    background-color: #fdecea;
+    border: 1px solid #e74c3c;
+    color: #c0392b;
+}
+
+.messages.success {
+    background-color: #e6ffe9;
+    border: 1px solid #2ecc71;
+    color: #27ae60;
+}
+
+.messages li {
+    margin-bottom: 5px;
+}

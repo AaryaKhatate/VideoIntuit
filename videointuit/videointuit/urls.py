@@ -20,7 +20,8 @@ from django.urls import include, path
 from api import views #This is very important.
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # Django admin URLs
-    path('api/', include('api.urls')),  # Include URLs from the "api" app
-    path('', views.index, name='index'), # This is the main page.
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+    path('', views.index, name='index'), # Your main page
+    path('accounts/', include('users.urls')), # Add this line
 ]

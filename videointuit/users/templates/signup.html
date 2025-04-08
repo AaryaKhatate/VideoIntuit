@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{% static 'ui/accounts.css' %}">
+</head>
+<body>
+    <div class="main-container"> <div class="content-area signup-page"> <h1>Sign Up</h1>
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <form method="post" action="{% url 'signup' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+            <p><a href="{% url 'index' %}">Back to Home</a></p>
+        </div>
+    </div>
+</body>
+</html>
