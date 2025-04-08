@@ -110,10 +110,11 @@ except nltk.downloader.DownloadError:
 # --- Configuration ---
 # Get paths/models from settings or use defaults
 FFMPEG_COMMAND = getattr(settings, 'FFMPEG_COMMAND', 'ffmpeg')
-CACHE_TIMEOUT = getattr(settings, 'CHAT_CACHE_TIMEOUT', 3600) # 1 hour
-OLLAMA_MODEL = getattr(settings, 'OLLAMA_MODEL', 'llama3.2')
+CACHE_TIMEOUT = getattr(settings, 'CHAT_CACHE_TIMEOUT', 3600) # 1 hour for transcript/embeddings cache
+OLLAMA_MODEL = getattr(settings, 'OLLAMA_MODEL', 'llama3.2') # Updated default
 CHUNK_SIZE = getattr(settings, 'TRANSCRIPT_CHUNK_SIZE', 512)
 RAG_TOP_K = getattr(settings, 'RAG_TOP_K', 3)
+MAX_HISTORY_TURNS = getattr(settings, 'MAX_HISTORY_TURNS', 10)
 
 # --- Helper Functions ---
 
@@ -453,25 +454,29 @@ def get_ollama_response_stream(messages_for_ollama):
 # View 1: Render Index Page
 def index(request):
     """Renders the main chat page (index.html)."""
-    # Basic check for model readiness - enhance as needed
-    if not WHISPER_MODELS or not SPACY_NLP or not EMBEDDING_MODEL:
+    models_ready = all([
+        WHISPER_MODELS,
+        SPACY_NLP,
+        EMBEDDING_MODEL,
+        EMBEDDING_DIMENSION is not None
+    ])
+    if not models_ready:
          logger.critical("One or more critical models failed to load. Check logs.")
-         # Optionally render an error page or message
-         # return render(request, 'error.html', {'message': 'Server setup incomplete.'})
     return render(request, 'index.html')
-
 
 # View 2: Upload Video (Handles initial question)
 @csrf_exempt
 def upload_video(request):
-    """Handles POST video, processes, stores context, AND optionally asks initial question."""
+    """
+    Handles POST video/URL, processes, stores context in cache, clears old history cache,
+    AND optionally asks initial question, returning the answer if provided.
+    """
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    # Check if essential models are loaded before proceeding
     if not all([WHISPER_MODELS, SPACY_NLP, EMBEDDING_MODEL, EMBEDDING_DIMENSION]):
          logger.error("Cannot process upload: Essential models not loaded.")
-         return JsonResponse({'error': 'Server is not ready. Models not loaded.'}, status=503) # Service Unavailable
+         return JsonResponse({'error': 'Server is not ready. Models not loaded.'}, status=503)
 
     video_source = None
     source_type = None
@@ -481,11 +486,12 @@ def upload_video(request):
     initial_question = None
 
     try:
-        # --- Session and Input Handling ---
         if not request.session.session_key:
             request.session.create()
         session_key = request.session.session_key
+        logger.info(f"Session {session_key[-5:]}: Starting video upload processing...")
 
+        # --- Input Handling (File or URL) ---
         if request.FILES.get('videoFile'):
             source_type = 'file'
             video_file = request.FILES['videoFile']
@@ -493,18 +499,22 @@ def upload_video(request):
                 for chunk in video_file.chunks(): tmp_video.write(chunk)
                 uploaded_file_path = tmp_video.name
             video_source = uploaded_file_path
-            initial_question = request.POST.get('question', '').strip()
-            logger.info(f"Session {session_key[-5:]}: File '{video_file.name}'. Initial Q: {'Yes' if initial_question else 'No'}")
+            initial_question = request.POST.get('question', '').strip() # Get question from form data
+            logger.info(f"Session {session_key[-5:]}: Processing uploaded file '{video_file.name}'. Initial Q: {'Yes' if initial_question else 'No'}")
 
         elif request.content_type == 'application/json' and request.body:
-             data = json.loads(request.body)
-             if data.get('videoUrl'):
-                 video_source = data['videoUrl']
-                 source_type = 'url'
-                 initial_question = data.get('question', '').strip()
-                 logger.info(f"Session {session_key[-5:]}: URL '{video_source}'. Initial Q: {'Yes' if initial_question else 'No'}")
-             else: return JsonResponse({'error': 'Missing videoUrl'}, status=400)
-        else: return JsonResponse({'error': 'No video file or URL payload'}, status=400)
+             try:
+                data = json.loads(request.body)
+                if data.get('videoUrl'):
+                    video_source = data['videoUrl']
+                    source_type = 'url'
+                    initial_question = data.get('question', '').strip() # Get question from JSON
+                    logger.info(f"Session {session_key[-5:]}: Processing URL '{video_source}'. Initial Q: {'Yes' if initial_question else 'No'}")
+                else: return JsonResponse({'error': 'Missing videoUrl in JSON payload'}, status=400)
+             except json.JSONDecodeError:
+                  logger.warning(f"Session {session_key[-5:]}: Invalid JSON payload received.")
+                  return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
+        else: return JsonResponse({'error': 'No video file or URL JSON payload provided'}, status=400)
 
         # --- Processing Steps ---
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_audio_f:
@@ -516,76 +526,95 @@ def upload_video(request):
 
         raw_transcript, trans_error = transcribe_audio(temp_audio_path)
         if trans_error: return JsonResponse({'error': trans_error}, status=500)
-        if not raw_transcript: return JsonResponse({'error': 'Transcription produced no text.'}, status=500)
 
-        processed_transcript = preprocess_transcript(raw_transcript)
-        # Don't fail if preprocessing returns empty, maybe transcription was just silence
-        # if not processed_transcript: return JsonResponse({'error': 'Preprocessing failed.'}, status=500)
-
+        processed_transcript = preprocess_transcript(raw_transcript if raw_transcript else "")
         transcript_chunks = chunk_transcript_with_spacy(processed_transcript)
-        if not transcript_chunks: # Can happen if processed_transcript is empty
-             logger.warning(f"Session {session_key[-5:]}: No chunks generated (transcript likely empty).")
-             # Proceed, but RAG won't work. Store empty lists.
-             transcript_chunks = []
-             transcript_embeddings_np = np.array([], dtype='float32') # Store empty array
+
+        transcript_embeddings_np = np.empty((0, EMBEDDING_DIMENSION), dtype='float32') # Default empty
+        if transcript_chunks:
+            _, embeddings_temp = build_faiss_index(transcript_chunks)
+            if embeddings_temp is not None and embeddings_temp.size > 0:
+                 transcript_embeddings_np = embeddings_temp
+            else:
+                logger.warning(f"Session {session_key[-5:]}: Chunking succeeded but embedding generation failed or yielded empty results.")
+                transcript_chunks = [] # Treat as no usable context if embeddings failed
         else:
-            # Build index temporarily to get embeddings
-            _, transcript_embeddings_np = build_faiss_index(transcript_chunks)
-            if transcript_embeddings_np is None:
-                return JsonResponse({'error': 'Failed to generate embeddings.'}, status=500)
+            logger.warning(f"Session {session_key[-5:]}: No chunks generated (transcript likely empty or preprocessing failed).")
+
 
         # --- Store Context in Cache ---
         chunks_key = f"transcript_chunks_{session_key}"
         embeddings_key = f"transcript_embeddings_{session_key}"
-        history_key = f"conversation_history_{session_key}"
+        history_key = f"conversation_history_{session_key}" # Key for old cache mechanism (clear it)
 
         cache.set(chunks_key, transcript_chunks, timeout=CACHE_TIMEOUT)
-        cache.set(embeddings_key, transcript_embeddings_np, timeout=CACHE_TIMEOUT) # Cache numpy array
-        cache.delete(history_key) # Clear history for new video
-        logger.info(f"Session {session_key[-5:]}: Stored {len(transcript_chunks)} chunks and embeddings. History cleared.")
+        cache.set(embeddings_key, transcript_embeddings_np, timeout=CACHE_TIMEOUT)
+        # **CRITICAL: Delete the old history cache key. History is now managed client-side.**
+        cache.delete(history_key)
+        logger.info(f"Session {session_key[-5:]}: Stored {len(transcript_chunks)} chunks and embeddings (Shape: {transcript_embeddings_np.shape}). Cleared any old server-side history cache.")
 
-        # --- Handle Initial Question ---
+        # --- Handle Initial Question (If applicable) ---
         initial_answer = None
-        if initial_question and transcript_chunks: # Only ask if there's content and a question
+        # Check if we have context AND an initial question was asked
+        has_video_context = transcript_chunks and transcript_embeddings_np.size > 0
+        if initial_question and has_video_context:
             logger.info(f"Session {session_key[-5:]}: Processing initial question: {initial_question[:50]}...")
             relevant_context = ""
+            # --- RAG for initial question ---
             try:
-                # Rebuild index from cached embeddings for search
                 index = faiss.IndexFlatL2(EMBEDDING_DIMENSION)
                 index.add(transcript_embeddings_np)
                 question_embedding = EMBEDDING_MODEL.encode([initial_question])[0].astype('float32').reshape(1, -1)
                 k = min(RAG_TOP_K, index.ntotal)
                 if k > 0:
                     _, indices = index.search(question_embedding, k)
-                    if indices.size > 0 and indices[0][0] != -1:
-                         relevant_context_chunks = [transcript_chunks[i] for i in indices[0]]
-                         relevant_context = "\n\n---\n\n".join(relevant_context_chunks)
-                         logger.info(f"Session {session_key[-5:]}: RAG found {len(relevant_context_chunks)} chunks for initial Q.")
+                    if indices.size > 0 and np.all(indices[0] != -1):
+                         valid_indices = [i for i in indices[0] if 0 <= i < len(transcript_chunks)]
+                         if valid_indices:
+                             relevant_context_chunks = [transcript_chunks[i] for i in valid_indices]
+                             relevant_context = "\n\n---\n\n".join(relevant_context_chunks)
+                             logger.info(f"Session {session_key[-5:]}: RAG found {len(relevant_context_chunks)} chunks for initial Q.")
             except Exception as e:
                  logger.error(f"Session {session_key[-5:]}: RAG error for initial Q: {e}", exc_info=True)
 
-            # Construct Ollama Payload
-            system_prompt = (f"Answer the user's question based *primarily* on the relevant excerpts from a video transcript below. If the answer isn't in the excerpts, say so.\n\nRELEVANT EXCERPTS:\n---\n{relevant_context}\n---\n\n"
-                             if relevant_context else
-                             "Answer the user's question based on the provided video transcript (context excerpts were not found/generated).") # Fallback prompt
-            messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": initial_question}]
+            # --- Construct Ollama Payload for Initial Question ---
+            # Use a simpler prompt for the *first* question, similar to the refined ask_question prompt
+            # but without needing history.
+            initial_system_prompt_template = """You are an AI assistant answering a question about a video transcript.
+                Base your answer PRIMARILY on the 'RELEVANT TRANSCRIPT EXCERPTS' provided below.
+                IMPORTANT RULES:
+                1. If the answer IS found in the excerpts above, provide it directly based on them.
+                2. If the answer is NOT found in the excerpts above, state "This topic doesn't seem to be covered in the provided video excerpts." and then ask "Should I answer using my general knowledge? (Yes/No)". Do NOT answer from general knowledge unless the user replies "Yes".
+                RELEVANT TRANSCRIPT EXCERPTS:
+                ---
+                {context_text}
+                ---
+                Answer the user's question below:
+                """
+            context_text = relevant_context if relevant_context else "(None found/relevant)"
+            initial_system_prompt = initial_system_prompt_template.format(context_text=context_text)
 
-            # Get FULL response for initial Q (accumulate from stream)
+            messages = [
+                {"role": "system", "content": initial_system_prompt},
+                {"role": "user", "content": initial_question}
+            ]
+
+            # --- Get FULL response for initial Q (accumulate from stream) ---
             try:
                  full_initial_response = ""
-                 response_stream = get_ollama_response_stream(messages) # Use the generator
+                 # Use the same streaming helper, but collect the full response
+                 response_stream = get_ollama_response_stream(messages)
                  for chunk in response_stream:
-                     full_initial_response += chunk.decode('utf-8', errors='replace') # Decode chunks
+                      full_initial_response += chunk.decode('utf-8', errors='replace')
 
-                 # Check if the response contains error messages yielded by the generator
                  if "--- Error:" in full_initial_response:
-                      initial_answer = f"(AI failed: {full_initial_response.split('--- Error:')[1].split('---')[0].strip()})" # Extract error
+                      error_detail = full_initial_response.split('--- Error:')[1].split('---')[0].strip()
+                      initial_answer = f"(AI processing failed for initial question: {error_detail})"
+                      logger.error(f"Session {session_key[-5:]}: Ollama failed for initial Q: {error_detail}")
                  elif full_initial_response and "(AI returned no content)" not in full_initial_response:
-                     initial_answer = full_initial_response.strip()
-                     # Add initial Q&A to history cache
-                     initial_history = [{"role": "user", "content": initial_question}, {"role": "assistant", "content": initial_answer}]
-                     cache.set(history_key, initial_history, timeout=CACHE_TIMEOUT)
-                     logger.info(f"Session {session_key[-5:]}: Stored initial Q&A history.")
+                      initial_answer = full_initial_response.strip()
+                      # NOTE: History is NOT stored server-side anymore. Frontend will handle it.
+                      logger.info(f"Session {session_key[-5:]}: Generated initial answer.")
                  else:
                       logger.warning(f"Session {session_key[-5:]}: Ollama gave empty/no content for initial Q.")
                       initial_answer = "(AI did not provide an answer to the initial question)"
@@ -593,180 +622,191 @@ def upload_video(request):
                  logger.error(f"Session {session_key[-5:]}: Ollama call failed for initial Q: {e}", exc_info=True)
                  initial_answer = "(Error getting initial answer from AI)"
 
-        elif initial_question: # Question provided but no transcript content
-             logger.warning(f"Session {session_key[-5:]}: Cannot answer initial question - no transcript chunks.")
-             initial_answer = "(Cannot answer initial question as video processing yielded no text content)"
+        elif initial_question: # Question asked but no context available
+             logger.warning(f"Session {session_key[-5:]}: Cannot answer initial question - transcript context missing or embeddings failed.")
+             initial_answer = "(Cannot answer initial question as video processing yielded no usable text content)"
 
         # --- Final Response ---
+        # Send status message and the initial answer (if generated)
         response_data = {'message': 'Video processed successfully. Ready for questions.'}
         if initial_answer:
-            response_data['answer'] = initial_answer
+            response_data['answer'] = initial_answer # Frontend will use this to start history
 
         return JsonResponse(response_data)
 
     # --- Error Handling & Cleanup ---
-    except json.JSONDecodeError:
-        logger.warning(f"Session {session_key[-5:]}: Invalid JSON payload received.")
-        return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
     except Exception as e:
         logger.error(f"Unexpected error in upload_video (Session: {session_key[-5:]}): {e}", exc_info=True)
-        return JsonResponse({'error': 'An unexpected server error occurred.'}, status=500)
+        return JsonResponse({'error': 'An unexpected server error occurred during processing.'}, status=500)
     finally:
+        # Ensure cleanup happens even if errors occur
         if temp_audio_path and os.path.exists(temp_audio_path):
             try: os.remove(temp_audio_path)
-            except OSError as e: logger.warning(f"Could not remove temp audio: {e}")
+            except OSError as e: logger.warning(f"Could not remove temp audio {temp_audio_path}: {e}")
         if uploaded_file_path and os.path.exists(uploaded_file_path):
             try: os.remove(uploaded_file_path)
-            except OSError as e: logger.warning(f"Could not remove temp video: {e}")
+            except OSError as e: logger.warning(f"Could not remove temp video {uploaded_file_path}: {e}")
+        logger.info(f"Session {session_key[-5:]}: Video upload processing finished.")
 
 @csrf_exempt
 def ask_question(request):
     """
-    Handles POST question, performs RAG, and STREAMS the response from Ollama.
+    Handles POST question with history, performs RAG, calls Ollama with refined prompt,
+    and STREAMS the response. Uses history provided by the client.
     """
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     session_key = request.session.session_key
     if not session_key:
-        return JsonResponse({'error': 'Session not found or expired. Please upload video again.'}, status=400)
+        return StreamingHttpResponse(iter([b"--- Error: Session not found or expired. Please upload video again. ---"]),
+                                     content_type="text/plain; charset=utf-8", status=400)
 
-    if not all([EMBEDDING_MODEL, EMBEDDING_DIMENSION]):
-        logger.error("Cannot process question: RAG models not loaded.")
-        return JsonResponse({'error': 'Server is not ready. Models not loaded.'}, status=503)
+    if not all([EMBEDDING_MODEL, EMBEDDING_DIMENSION is not None]):
+        logger.error(f"Session {session_key[-5:]}: Cannot process question: RAG models not loaded.")
+        return StreamingHttpResponse(iter([b"--- Error: Server is not ready (models not loaded). ---"]),
+                                     content_type="text/plain; charset=utf-8", status=503)
 
     try:
         data = json.loads(request.body)
         question = data.get('question', '').strip()
+        # ** Get history from client **
+        client_history = data.get('history', []) # Expects list of {"role": "...", "content": "..."}
+
         if not question:
-            return JsonResponse({'error': 'No question provided'}, status=400)
+            return StreamingHttpResponse(iter([b"--- Error: No question provided. ---"]),
+                                         content_type="text/plain; charset=utf-8", status=400)
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+         return StreamingHttpResponse(iter([b"--- Error: Invalid JSON in request body. ---"]),
+                                      content_type="text/plain; charset=utf-8", status=400)
 
-    logger.info(f"Session {session_key[-5:]}: Processing question (streaming): {question[:50]}...")
+    logger.info(f"Session {session_key[-5:]}: Processing question (streaming) with {len(client_history)} history entries: {question[:50]}...")
 
-    # --- Retrieve Context from Cache ---
-    history_key = f"conversation_history_{session_key}"
+    # --- Retrieve Context (Chunks & Embeddings) from Cache ---
     chunks_key = f"transcript_chunks_{session_key}"
     embeddings_key = f"transcript_embeddings_{session_key}"
 
-    conversation_history = cache.get(history_key, [])
     transcript_chunks = cache.get(chunks_key)
     transcript_embeddings_np = cache.get(embeddings_key)
 
-    # --- Summarization Check ---
-    if question.lower() in ["summarize the video", "summarise the video"]:
+    # --- Check if Video Context Exists in Cache ---
+    has_video_context = transcript_chunks is not None and transcript_embeddings_np is not None and transcript_embeddings_np.size > 0
+
+    if not has_video_context:
+        logger.warning(f"Session {session_key[-5:]}: No video context found in cache. Asking user to upload.")
+        # Stream back a predefined message without calling Ollama
+        no_context_message = "It looks like no video has been provided. Please upload a video file or provide a video URL first."
+        return StreamingHttpResponse(iter([no_context_message.encode('utf-8')]),
+                                     content_type="text/plain; charset=utf-8", status=200) # Send 200 OK, but with instruction
+
+    # --- Handle Summarization Request (Checks client_history) ---
+    if question.lower() in ["summarize", "summarise", "summarize the video", "summarise the video", "give me a summary", "tl;dr", "tldr"]:
         logger.info(f"Session {session_key[-5:]}: Summarization requested.")
-        summary_stream = summarize_conversation(conversation_history)
+        # Use the client-provided history for summarization
+        summary_stream = summarize_conversation(client_history) # Pass client_history
         response = StreamingHttpResponse(summary_stream, content_type="text/plain; charset=utf-8")
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
         return response
 
-    # --- Perform RAG Search ---
+    # --- Perform RAG Search (If context exists) ---
     relevant_context = ""
-    if transcript_chunks and transcript_embeddings_np is not None and transcript_embeddings_np.size > 0:
+    if has_video_context: # Double check, though covered above
         try:
-            index = faiss.IndexFlatL2(EMBEDDING_DIMENSION)
-            index.add(transcript_embeddings_np)
-            question_embedding = EMBEDDING_MODEL.encode([question])[0].astype('float32').reshape(1, -1)
-            k = min(RAG_TOP_K, index.ntotal)
-            if k > 0:
-                _, indices = index.search(question_embedding, k)
-                if indices.size > 0 and indices[0][0] != -1:
-                    relevant_indices = indices[0]
-                    relevant_context_chunks = [transcript_chunks[i] for i in relevant_indices]
-                    relevant_context = "\n\n---\n\n".join(relevant_context_chunks)
-                    logger.info(f"Session {session_key[-5:]}: RAG found {len(relevant_context_chunks)} chunks for question.")
+            if transcript_embeddings_np.shape[1] != EMBEDDING_DIMENSION:
+                 logger.error(f"Session {session_key[-5:]}: Embedding dimension mismatch in cache! Expected {EMBEDDING_DIMENSION}, Got {transcript_embeddings_np.shape[1]}. Cannot perform RAG.")
+            else:
+                index = faiss.IndexFlatL2(EMBEDDING_DIMENSION)
+                index.add(transcript_embeddings_np)
+                logger.debug(f"Session {session_key[-5:]}: FAISS index rebuilt with {index.ntotal} vectors for RAG.")
+
+                question_embedding = EMBEDDING_MODEL.encode([question])[0].astype('float32').reshape(1, -1)
+                k = min(RAG_TOP_K, index.ntotal)
+
+                if k > 0:
+                    distances, indices = index.search(question_embedding, k)
+                    if indices.size > 0 and np.all(indices[0] != -1):
+                        valid_indices = [i for i in indices[0] if 0 <= i < len(transcript_chunks)]
+                        if valid_indices:
+                            relevant_context_chunks = [transcript_chunks[i] for i in valid_indices]
+                            relevant_context = "\n\n---\n\n".join(relevant_context_chunks)
+                            logger.info(f"Session {session_key[-5:]}: RAG found {len(relevant_context_chunks)} relevant chunks.")
+                        else:
+                             logger.warning(f"Session {session_key[-5:]}: RAG search returned indices out of bounds: {indices[0]}.")
+                    else:
+                        logger.info(f"Session {session_key[-5:]}: RAG search did not find any relevant chunks (indices: {indices}).")
+                else:
+                     logger.info(f"Session {session_key[-5:]}: Not enough vectors in index (or k=0) for RAG search.")
+
         except Exception as e:
-            logger.error(f"Session {session_key[-5:]}: RAG search error: {e}", exc_info=True)
-            relevant_context = ""
+             logger.error(f"Session {session_key[-5:]}: RAG search failed: {e}", exc_info=True)
+             # Continue without relevant context, prompt handles this
 
-    # --- Prepare Ollama Payload ---
-    if relevant_context:
-        system_prompt = (
-            "You are answering questions based ONLY on the provided video transcript excerpts.\n"
-            "If the answer is NOT present in the transcript, politely refuse and ask user for permission to guess.\n"
-            "NEVER invent information.\n\n"
-            "RELEVANT EXCERPTS:\n---\n"
-            f"{relevant_context}\n---\n\n"
-        )
-    else:
-        system_prompt = (
-            "The video transcript context is not available.\n"
-            "Kindly inform the user and do not attempt to answer beyond available information."
-        )
+    # --- Construct Ollama Payload with Refined Prompt ---
+    system_prompt_template = """You are an AI assistant answering questions about a video transcript.
+        Focus ONLY on the user's LAST question which follows the conversation history.
+        Use the conversation history for context. Base your answer PRIMARILY on the 'RELEVANT TRANSCRIPT EXCERPTS' provided below.
+        IMPORTANT RULES:
+        1. If the answer IS found in the excerpts above, provide it directly based on them.
+        2. If the answer is NOT found in the excerpts above, state "This topic doesn't seem to be covered in the provided video excerpts." AND THEN ask "Should I answer using my general knowledge? (Yes/No)". Do NOT provide the answer from general knowledge in this response. Wait for the user to say "Yes".And this is applied for all questions tha user asks to you.
+        3. Do NOT repeat previous questions or answers from the conversation history. Just answer the user's LAST question according to rules 1 & 2.
+        RELEVANT TRANSCRIPT EXCERPTS (primary source for the upcoming question):
+        ---
+        {context_text}
+        ---
+        """
 
-    messages_for_ollama = [{"role": "system", "content": system_prompt}]
-    messages_for_ollama.extend(conversation_history)
+    context_text = relevant_context if relevant_context else "(None found/relevant for this question)"
+    final_system_prompt = system_prompt_template.format(context_text=context_text)
+
+    messages_for_ollama = [{"role": "system", "content": final_system_prompt}]
+
+    # Add historical context (client provided, limited length)
+    limited_history = client_history[-(MAX_HISTORY_TURNS * 2):] # Keep last N user/assistant pairs
+    messages_for_ollama.extend(limited_history)
+
+    # Add the actual user question LAST
     messages_for_ollama.append({"role": "user", "content": question})
 
-    # --- Update History Cache (only User message for now) ---
-    updated_history_user_turn = conversation_history + [{"role": "user", "content": question}]
-    cache.set(history_key, updated_history_user_turn, timeout=CACHE_TIMEOUT)
-
-    if transcript_chunks: cache.touch(chunks_key, timeout=CACHE_TIMEOUT)
-    if transcript_embeddings_np is not None: cache.touch(embeddings_key, timeout=CACHE_TIMEOUT)
-
-    logger.info(f"Session {session_key[-5:]}: Updated history cache (user turn only).")
-
-    # --- Stream the Response ---
+    # --- Stream Response ---
     try:
-        stream_generator = get_ollama_response_stream(messages_for_ollama)
-        response = StreamingHttpResponse(stream_generator, content_type="text/plain; charset=utf-8")
+        response_stream = get_ollama_response_stream(messages_for_ollama)
+        response = StreamingHttpResponse(response_stream, content_type="text/plain; charset=utf-8")
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
+        logger.info(f"Session {session_key[-5:]}: Streaming response initiated.")
         return response
     except Exception as e:
-        logger.error(f"Session {session_key[-5:]}: Error setting up streaming response: {e}", exc_info=True)
-        return JsonResponse({'error': 'Failed to initiate AI response stream.'}, status=500)
+        logger.error(f"Session {session_key[-5:]}: Failed to initiate Ollama stream: {e}", exc_info=True)
+        error_stream = iter([b"\n\n--- Error: Failed to communicate with AI model. ---"])
+        return StreamingHttpResponse(error_stream, content_type="text/plain; charset=utf-8", status=500)
 
 # --- Helper function: Summarize conversation ---
-
-def summarize_conversation(history):
+def summarize_conversation(conversation_history):
     """
-    Calls Ollama LLM to summarize conversation history and returns a generator for streaming.
+    Generates a summary of the conversation history using Ollama (streaming).
     """
-    if not history:
-        yield "No conversation history available to summarize.".encode('utf-8')
+    if not conversation_history:
+        yield "No conversation history found to summarize.".encode('utf-8')
         return
 
-    prompt = (
-        "Summarize the following conversation.\n"
-        "Preserve bullet points, bold text, formatting, and important structure.\n"
-        "If the conversation is large, focus on the key points only.\n\n"
-        f"Conversation:\n{json.dumps(history, indent=2)}"
-    )
+    logger.info("Generating conversation summary...")
+    # Keep summary prompt simple
+    summary_prompt = "Summarize the key points discussed in the following conversation history:"
 
+    # Use the standard chat endpoint for summarization too
     messages = [
-        {"role": "system", "content": "You are a professional summarization assistant."},
-        {"role": "user", "content": prompt}
+        {"role": "system", "content": "You are a helpful assistant skilled at summarizing conversations concisely."},
+        {"role": "user", "content": summary_prompt}
     ]
+    # Append the actual history for the LLM to process
+    messages.extend(conversation_history)
 
-    try:
-        logger.info("Calling Llama3.2 to summarize conversation (streaming).")
-        stream = ollama.chat(
-            model=OLLAMA_MODEL,
-            messages=messages,
-            stream=True,
-            options={
-                "temperature": 0.3,
-                "top_p": 0.9,
-                "num_ctx": 4096
-            }
-        )
 
-        for chunk in stream:
-            message_chunk = chunk.get('message', {})
-            content_chunk = message_chunk.get('content', '')
-            if content_chunk:
-                yield content_chunk.encode('utf-8')
-
-    except Exception as e:
-        logger.error(f"Error during summarization: {e}")
-        yield f"\n\n--- Error during summarization: {str(e)} ---".encode('utf-8')
+    # Use the existing streaming function
+    yield from get_ollama_response_stream(messages)
 
 # --- Helper function: call_llm ---
 
