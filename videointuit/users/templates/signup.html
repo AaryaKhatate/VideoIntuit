@@ -1,29 +1,100 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="{% static 'ui/accounts.css' %}">
-</head>
-<body>
-    <div class="main-container"> <div class="content-area signup-page"> <h1>Sign Up</h1>
-            {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            <form method="post" action="{% url 'signup' %}">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Sign Up</button>
-            </form>
-            <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
-            <p><a href="{% url 'index' %}">Back to Home</a></p>
-        </div>
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - VideoIntuit{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field">
+                {{ field.label_tag }}
+                {{ field }}
+                <div class="field-error" id="{{ field.id_for_label }}-error">
+                    {% if field.errors %}
+                        {{ field.errors }}
+                    {% endif %}
+                </div>
+                {% if field.name == 'password' %}
+                    <div id="password-rules" class="password-rules-hidden">
+                        <p>Your password must include:</p>
+                        <ul>
+                            <li>Minimum 8 characters</li>
+                            <li>At least one uppercase letter</li>
+                            <li>At least one lowercase letter</li>
+                            <li>At least one number</li>
+                            <li>At least one special character (e.g., !@#$%^)</li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit">Sign Up</button>
+        <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+    </form>
+    <p><a href="{% url 'index' %}">Back to Home</a></p>
+</div>
+
+<script>
+    const signupForm = document.getElementById('signup-form');
+
+    signupForm.addEventListener('submit', function(event) {
+        let hasErrors = false;
+
+        const usernameInput = this.querySelector('input[name="username"]');
+        const emailInput = this.querySelector('input[name="email"]');
+        const passwordInput = this.querySelector('input[name="password"]');
+        const password2Input = this.querySelector('input[name="password2"]');
+
+        clearErrors(); // Function to clear any existing error messages
+
+        if (!usernameInput.value.trim()) {
+            displayFieldError(usernameInput, 'Please enter a username.');
+            hasErrors = true;
+        }
+
+        if (!emailInput.value.trim()) {
+            displayFieldError(emailInput, 'Please enter your email address.');
+            hasErrors = true;
+        } else if (!isValidEmail(emailInput.value.trim())) {
+            displayFieldError(emailInput, 'Please enter a valid email address.');
+            hasErrors = true;
+        }
+
+        if (!passwordInput.value.trim()) {
+            displayFieldError(passwordInput, 'Please enter a password.');
+            hasErrors = true;
+        }
+
+        if (passwordInput.value.trim() !== password2Input.value.trim()) {
+            displayFieldError(password2Input, 'Passwords do not match.');
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            event.preventDefault();
+        }
+    });
+
+    function displayFieldError(inputElement, message) {
+        const errorDivId = inputElement.id + '-error';
+        const errorDiv = document.getElementById(errorDivId);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+
+    function clearErrors() {
+        const errorDivs = document.querySelectorAll('.field-error');
+        errorDivs.forEach(div => {
+            div.textContent = '';
+        });
+    }
+
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+</script>
+{% endblock %}

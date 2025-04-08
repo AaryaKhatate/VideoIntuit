@@ -99,3 +99,14 @@ button[type="submit"]:hover {
 .messages li {
     margin-bottom: 5px;
 }
+.errorlist { /* Style the container if you want */
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.errorlist p {
+    color: red;
+    font-size: 0.95em;
+    margin-bottom: 0.2em;
+}

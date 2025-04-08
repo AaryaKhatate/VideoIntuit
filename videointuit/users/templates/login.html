@@ -1,29 +1,75 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
-    <link rel="stylesheet" href="{% static 'ui/accounts.css' %}">
-</head>
-<body>
-    <div class="main-container"> <div class="content-area login-page"> <h1>Log In</h1>
-            {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+{% extends 'base.html' %}
+
+{% block title %}Login - VideoIntuit{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Login</h2>
+    <form id="login-form" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field">
+                {{ field.label_tag }}
+                {{ field }}
+                <div class="field-error" id="{{ field.id_for_label }}-error">
+                    {% if field.errors %}
+                        {{ field.errors }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if field.name == 'password' and form.non_field_errors %}
+                <div id="non-field-errors" class="errorlist">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
                     {% endfor %}
-                </ul>
+                </div>
             {% endif %}
-            <form method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Log In</button>
-            </form>
-            <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
-            <p><a href="{% url 'index' %}">Back to Home</a></p>
-        </div>
-    </div>
-</body>
-</html>
+        {% endfor %}
+        <button type="submit">Login</button>
+        <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
+    </form>
+    <p><a href="{% url 'index' %}">Back to Home</a></p>
+</div>
+
+<script>
+    const loginForm = document.getElementById('login-form');
+
+    loginForm.addEventListener('submit', function(event) {
+        let hasErrors = false;
+
+        const usernameInput = this.querySelector('input[name="username"]');
+        const passwordInput = this.querySelector('input[name="password"]');
+
+        clearErrors();
+
+        if (!usernameInput.value.trim()) {
+            displayFieldError(usernameInput, 'Please enter your username.');
+            hasErrors = true;
+        }
+
+        if (!passwordInput.value.trim()) {
+            displayFieldError(passwordInput, 'Please enter your password.');
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            event.preventDefault();
+        }
+    });
+
+    function displayFieldError(inputElement, message) {
+        const errorDivId = inputElement.id + '-error';
+        const errorDiv = document.getElementById(errorDivId);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+
+    function clearErrors() {
+        const errorDivs = document.querySelectorAll('.field-error');
+        errorDivs.forEach(div => {
+            div.textContent = '';
+        });
+    }
+</script>
+{% endblock %}

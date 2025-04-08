@@ -59,7 +59,7 @@ ROOT_URLCONF = 'videointuit.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'api/templates'],
+        'DIRS': [BASE_DIR.parent / 'videointuit' / 'api' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

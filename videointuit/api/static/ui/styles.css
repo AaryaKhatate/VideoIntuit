@@ -6,15 +6,172 @@ body {
    display: flex;
    height: 100vh;
    margin: 0;
-   background-color: #f8f9fc; /* Light background */
+   background-color: #f8f9fc; /* Default background color */
+   background-image: url('D:\Mini project sem 4\VideoIntuit\videointuit\api\templates\vidintuit-removebg-preview.png'); /* REPLACE THIS WITH THE ACTUAL PATH TO YOUR IMAGE */
+   background-size: cover;
+   background-repeat: no-repeat;
    font-family: Arial, sans-serif;
-   color: #333; /* Default text color */
-   overflow: hidden; /* Prevent body scrolling */
+   color: #333;
+   overflow: hidden;
+   justify-content: center; /* To center the form horizontally */
+   align-items: center; /* To center the form vertically */
 }
-
 /* Box sizing */
 *, *::before, *::after {
    box-sizing: border-box;
+}
+
+.password-rules-hidden {
+   display: none;
+   margin-top: 5px;
+   color: #777;
+   font-size: 0.9em;
+}
+
+.password-rules-visible {
+   display: block;
+   margin-top: 5px;
+   color: #777;
+   font-size: 0.9em;
+}
+
+.password-rules-visible ul {
+   list-style-type: disc;
+   padding-left: 20px;
+   margin-top: 5px;
+}
+
+.password-rules-visible li {
+   margin-bottom: 3px;
+}
+
+/* ... your existing CSS ... */
+
+.field-error {
+   color: red;
+   font-size: 0.8em;
+   margin-top: 3px;
+   text-align: left; /* Align error text to the left */
+}
+/* ... your existing CSS ... */
+
+#non-field-errors {
+   color: red;
+   font-size: 0.75em; /* Slightly smaller font */
+   text-align: center; /* Center the text */
+   margin-top: 5px; /* Add some space above */
+   margin-bottom: 10px; /* Add some space below */
+}
+
+#non-field-errors p {
+   margin-bottom: 0.2em; /* Adjust spacing between multiple errors */
+}
+
+#login-error-popup-container,
+#signup-error-popup-container {
+    margin-bottom: 10px;
+}
+
+.popup-error {
+    background-color: #fdecea;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* ======================== */
+/* Styles for Login and Signup Form Container */
+/* ======================== */
+
+.form-container {
+   background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+   padding: 30px;
+   border-radius: 10px;
+   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+   width: 450px; /* Increased width (example) */
+   max-width: 95%; /* Slightly increased max-width (example) */
+   text-align: center;
+}
+
+.form-container h2 {
+   margin-bottom: 20px;
+   color: #333;
+}
+
+.form-container form {
+   display: flex;
+   flex-direction: column;
+   gap: 15px;
+}
+/*
+.form-container label {
+   display: block;  Keep label on its own line 
+   text-align: left;
+   color: #555;
+   margin-bottom: 5px; Add a little space below the label 
+}
+
+.form-container input[type="text"],
+.form-container input[type="password"] {
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   width: 100%; Ensure input takes full width of container 
+   box-sizing: border-box; Include padding and border in the element's total width and height 
+    Remove any properties that might cause misalignment, if any 
+}*/
+
+/* If you want the label and input to be inline (less common for stacked forms): */
+
+.form-container label {
+   display: inline-block;
+   width: 100px; /*Adjust width as needed */
+   text-align: left;
+   vertical-align: middle; /*Align label text vertically in the middle */
+}
+
+.form-container input[type="text"],
+.form-container input[type="password"] {
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   width: calc(100% - 110px); /*Adjust width based on label width + spacing */
+   display: inline-block;
+   vertical-align: middle; /*Align input vertically in the middle */
+   box-sizing: border-box;
+}
+
+.form-container input[type="email"] {
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   width: calc(100% - 110px); /* Match width calculation */
+   display: inline-block;
+   vertical-align: middle; /* Match vertical alignment */
+   box-sizing: border-box;
+}
+
+.form-container button[type="submit"] {
+   background-color: #8b5cf6; /* Your theme color */
+   color: white;
+   padding: 12px;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+   font-size: 1em;
+}
+
+.form-container p {
+   margin-top: 15px;
+   color: #777;
+}
+
+.form-container a {
+   color: #8b5cf6;
+   text-decoration: none;
 }
 
 /* ======================== */

@@ -1,4 +1,3 @@
-# D:\Mini project sem 4\VideoIntuit\videointuit\views.py
 from django.shortcuts import render
 from django.urls import reverse
 
