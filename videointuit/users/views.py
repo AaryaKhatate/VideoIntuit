@@ -27,7 +27,7 @@ def login(request):
             messages.success(request, f'Logged in as {user.username}!')
             return redirect('index') # We'll define 'home' URL later
         else:
-            messages.error(request, 'Invalid username or password.')
+             pass
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
