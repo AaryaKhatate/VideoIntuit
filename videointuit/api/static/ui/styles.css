@@ -78,16 +78,12 @@ body.dark-mode .password-rules-visible li {
    color: #e2e8f0;
 }
 
-/* ... your existing CSS ... */
-
 .field-error {
    color: red;
    font-size: 0.8em;
    margin-top: 3px;
    text-align: left; /* Align error text to the left */
 }
-
-/* ... your existing CSS ... */
 
 #non-field-errors {
    color: red;
@@ -874,3 +870,91 @@ body.dark-mode .spinner {
    font-size: 20px; /* Adjust as needed */
    vertical-align: middle;
 }
+
+/* Simple CSS Spinner */
+.spinner {
+   border: 3px solid rgba(0, 0, 0, 0.1); /* Light grey border */
+   border-left-color: #007bff; /* Blue spinner color */
+   border-radius: 50%;
+   width: 16px; /* Adjust size as needed */
+   height: 16px;
+   animation: spin 1s linear infinite; /* Animation */
+   flex-shrink: 0; /* Prevent spinner from shrinking */
+ }
+ 
+ @keyframes spin {
+   to {
+     transform: rotate(360deg);
+   }
+ }
+ 
+ /* Style for system/error messages */
+ .system-message {
+   /* Add your existing styles */
+   color: #555;
+   font-style: italic;
+   /* Ensure flex works if spinner is added */
+   /* display: flex;
+   align-items: center;
+   gap: 8px; */
+ }
+ 
+ .error-message {
+  /* Add your existing styles */
+   color: #dc3545; /* Red color for errors */
+   font-weight: bold;
+    /* Ensure flex works if spinner is added */
+   /* display: flex;
+   align-items: center;
+   gap: 8px; */
+ }
+ 
+ /* Container for related video links */
+ .related-videos-container {
+     margin-top: 10px;
+     padding: 10px;
+     background-color: #f8f9fa; /* Light background */
+     border-radius: 5px;
+     border: 1px solid #e9ecef;
+ }
+ 
+ .related-videos-container p {
+     margin-bottom: 5px;
+ }
+ 
+ .related-videos-container ul {
+     margin-top: 5px;
+     margin-bottom: 0;
+ }
+ 
+ .related-videos-container li a {
+     color: #0056b3; /* Link color */
+     text-decoration: none;
+ }
+ .related-videos-container li a:hover {
+     text-decoration: underline;
+ }
+ 
+ 
+ /* Adjust input container padding */
+ .input-container {
+     padding: 12px 15px; /* Base padding */
+     /* Padding top adjusted by JS based on file preview */
+ }
+ 
+ /* File tag styling (example) */
+ .file-tag {
+     display: inline-flex; /* Align icon, text, button */
+     align-items: center;
+     background-color: #e9ecef;
+     padding: 3px 8px;
+     border-radius: 15px; /* Rounded tags */
+     font-size: 0.9em;
+     margin-right: 5px;
+     margin-bottom: 5px; /* Spacing below tags */
+ }
+
+
+ /*sidebar and hover*/
+
+
