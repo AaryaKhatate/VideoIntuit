@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}VideoIntuit{% endblock %}
 
 {% block content %}
 <aside class="sidebar">
+    <div class="options-container">
+        <input type="checkbox" id="findOtherVideos" name="findOtherVideos">
+        <label for="findOtherVideos">Find related YouTube videos (more context)</label>
+      </div>
     <div class="sidebar-buttons">
         <button class="newChat-btn">
             <span class="material-icons">add</span>
@@ -101,29 +106,32 @@
             });
         </script>
     </header>
-    <div class="options-container">
-        <input type="checkbox" id="findOtherVideos" name="findOtherVideos">
-        <label for="findOtherVideos">Find related YouTube videos (more context)</label>
-      </div>
+       
 
     <section class="chat-area">
         <div class="chat-messages" id="chatMessages">
             </div>
+
+        <div id="logo-container">
+            <img src="{% static 'images/vidintuit-removebg-preview.png' %}" alt="Logo Watermark" id="logo-watermark" draggable="false">
+        </div>
     </section>
 
     <section class="input-container">
         <section class="file-preview-container" id="filePreviewContainer"></section>
-
-        <input type="file" id="fileInput" hidden multiple>
-        <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
-
+    
+        <div class="input-and-textarea-wrapper">
+            <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
+        </div>
+    
         <div class="input-container-buttons">
             <button class="attach-btn" id="attachBtn" title="Add Video">+</button>
+            <input type="file" id="fileInput" accept="video/*,audio/*" style="display: none;">
             <span id="loadingIndicator" class="loading-spinner" style="display: none;"></span>
             <button class="send-btn" id="sendBtn" title="Send Message">↑</button>
         </div>
     </section>
-
+    
     <script>
         function focusInput() {
             document.getElementById("messageInput").focus();

@@ -148,8 +148,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (attachButton) {
         attachButton.addEventListener("click", function () {
-            if (isProcessing || !fileInput) return;
-            fileInput.click(); // Trigger hidden file input
+            if (isProcessing || !fileInput) return; // Check if we should do nothing
+            fileInput.click();                     // If the checks pass, trigger the file dialog
         });
     }
 
