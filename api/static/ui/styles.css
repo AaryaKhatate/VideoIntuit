@@ -1,0 +1,982 @@
+/* ======================== */
+/* General Styles */
+/* ======================== */
+
+body {
+   display: flex;
+   height: 100vh;
+   margin: 0;
+   background-color: #f8f9fc; /* Default light background */
+   background-image: url("E:\Project\videointuit\api\templates\vidintuit-removebg-preview.png"); /* REPLACE THIS WITH THE ACTUAL PATH TO YOUR IMAGE */
+   background-size: cover;
+   background-repeat: no-repeat;
+   font-family: Arial, sans-serif;
+   color: #333; /* Default light text color */
+   overflow: hidden;
+   justify-content: center; /* To center the form horizontally */
+   align-items: center; /* To center the form vertically */
+   transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for theme change */
+}
+
+body.dark-mode {
+   background-color: #1a202c; /* Dark background */
+   color: #f7fafc; /* Dark text color */
+}
+
+/* Box sizing */
+*, *::before, *::after {
+   box-sizing: border-box;
+}
+
+.user-initial-icon {
+   width: 30px;
+   height: 30px;
+   border-radius: 50%;
+   background-color: #ccc;
+   color: white;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   font-size: 16px;
+   margin-right: 8px;
+}
+body.dark-mode .user-initial-icon {
+   background-color: #4a5568; /* Darker grey in dark mode */
+   color: #edf2f7;
+}
+
+.password-rules-hidden {
+   display: none;
+   margin-top: 5px;
+   color: #777;
+   font-size: 0.9em;
+}
+body.dark-mode .password-rules-hidden {
+   color: #d1d5db;
+}
+
+.password-rules-visible {
+   display: block;
+   margin-top: 5px;
+   color: #777;
+   font-size: 0.9em;
+}
+body.dark-mode .password-rules-visible {
+   color: #d1d5db;
+}
+
+.password-rules-visible ul {
+   list-style-type: disc;
+   padding-left: 20px;
+   margin-top: 5px;
+}
+
+.password-rules-visible li {
+   margin-bottom: 3px;
+}
+body.dark-mode .password-rules-visible li {
+   color: #e2e8f0;
+}
+
+.field-error {
+   color: red;
+   font-size: 0.8em;
+   margin-top: 3px;
+   text-align: left; /* Align error text to the left */
+}
+
+#non-field-errors {
+   color: red;
+   font-size: 0.75em; /* Slightly smaller font */
+   text-align: center; /* Center the text */
+   margin-top: 5px; /* Add some space above */
+   margin-bottom: 10px; /* Add some space below */
+}
+
+#non-field-errors p {
+   margin-bottom: 0.2em; /* Adjust spacing between multiple errors */
+}
+
+#login-error-popup-container,
+#signup-error-popup-container {
+   margin-bottom: 10px;
+}
+
+.popup-error {
+   background-color: #fdecea;
+   color: #e74c3c;
+   border: 1px solid #e74c3c;
+   padding: 10px;
+   border-radius: 5px;
+   margin-bottom: 5px;
+   text-align: center;
+}
+body.dark-mode .popup-error {
+   background-color: #742a2a;
+   color: #fca5a5;
+   border-color: #fca5a5;
+}
+
+/* ======================== */
+/* Styles for Login and Signup Form Container */
+/* ======================== */
+
+.form-container {
+   background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+   padding: 30px;
+   border-radius: 10px;
+   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+   width: 450px; /* Increased width (example) */
+   max-width: 95%; /* Slightly increased max-width (example) */
+   text-align: center;
+   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+body.dark-mode .form-container {
+   background-color: rgba(26, 32, 44, 0.9); /* Semi-transparent dark */
+   box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+   color: #f7fafc;
+}
+
+.form-container h2 {
+   margin-bottom: 20px;
+   color: #333;
+   transition: color 0.3s ease;
+}
+body.dark-mode .form-container h2 {
+   color: #edf2f7;
+}
+
+.form-container form {
+   display: flex;
+   flex-direction: column;
+   gap: 15px;
+}
+
+.form-container label {
+   display: inline-block;
+   width: 100px; /*Adjust width as needed */
+   text-align: left;
+   vertical-align: middle; /*Align label text vertically in the middle */
+   color: #555;
+   transition: color 0.3s ease;
+}
+body.dark-mode .form-container label {
+   color: #e2e8f0;
+}
+
+.form-container input[type="text"],
+.form-container input[type="password"],
+.form-container input[type="email"] {
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   width: calc(100% - 110px); /*Adjust width based on label width + spacing */
+   display: inline-block;
+   vertical-align: middle; /*Align input vertically in the middle */
+   box-sizing: border-box;
+   background-color: #fff;
+   color: #333;
+   transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+body.dark-mode .form-container input[type="text"],
+body.dark-mode .form-container input[type="password"],
+body.dark-mode .form-container input[type="email"] {
+   border-color: #4a5568;
+   background-color: #2d3748;
+   color: #cbd5e0;
+}
+
+.form-container button[type="submit"] {
+   background-color: #8b5cf6; /* Your theme color */
+   color: white;
+   padding: 12px;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+   font-size: 1em;
+   transition: background-color 0.2s ease;
+}
+.form-container button[type="submit"]:hover {
+   background-color: #7c3aed;
+}
+
+.form-container p {
+   margin-top: 15px;
+   color: #777;
+   transition: color 0.3s ease;
+}
+body.dark-mode .form-container p {
+   color: #d1d5db;
+}
+
+.form-container a {
+   color: #8b5cf6;
+   text-decoration: none;
+   transition: color 0.2s ease;
+}
+.form-container a:hover {
+   color: #a78bfa;
+}
+
+/* ======================== */
+/* Sidebar Styles */
+/* ======================== */
+
+.sidebar {
+   width: 220px; /* Fixed width */
+   height: 100vh;
+   background: #ffffff; /* White background */
+   color: #6b7280; /* Grey text */
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   gap: 20px; /* Spacing between elements */
+   position: fixed; /* Fixed position */
+   left: 0;
+   top: 0;
+   border-right: 1px solid #e5e7eb; /* Subtle border */
+   z-index: 1001; /* Above main content if needed */
+   overflow-y: auto; /* Allow scrolling if content overflows */
+   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+body.dark-mode .sidebar {
+   background: #2d3748;
+   color: #cbd5e0;
+   border-color: #4a5568;
+}
+
+/* Sidebar App Name */
+.sidebar .app-name1 { /* Use specific class if needed */
+   font-size: 18px; /* Slightly larger */
+   font-weight: bold;
+   color: #4b5563; /* Darker grey */
+   padding-bottom: 10px; /* Space below title */
+   transition: color 0.3s ease;
+}
+body.dark-mode .sidebar .app-name1 {
+   color: #edf2f7;
+}
+
+/* Sidebar Buttons Container */
+.sidebar-buttons {
+   display: flex;
+   gap: 10px;
+   padding-bottom: 10px; /* Space below buttons */
+}
+
+/* Sidebar List */
+.sidebar ul {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+   flex-grow: 1; /* Allow list to take remaining space */
+}
+
+.sidebar ul li {
+   padding: 10px 12px; /* Adjust padding */
+   cursor: pointer;
+   border-radius: 8px;
+   transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+   font-size: 14px; /* Slightly smaller font */
+   margin-bottom: 5px; /* Space between items */
+}
+body.dark-mode .sidebar ul li {
+   color: #e2e8f0;
+}
+
+.sidebar ul li:hover {
+   background: #f3f4f6; /* Lighter hover */
+   color: #1f2937; /* Darker text on hover */
+}
+body.dark-mode .sidebar ul li:hover {
+   background: #4a5568;
+   color: #f7fafc;
+}
+
+/* ======================== */
+/* Header Styles */
+/* ======================== */
+
+.header {
+   position: fixed; /* Fixed header */
+   top: 0;
+   left: 220px; /* Positioned next to the sidebar */
+   width: calc(100% - 220px); /* Full width minus sidebar */
+   height: 60px; /* Standard header height */
+   background: #f8f9fc; /* Match body background */
+   display: flex;
+   justify-content: space-between; /* Space out elements */
+   align-items: center;
+   padding: 0 25px; /* Horizontal padding */
+   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); Subtle shadow */
+   border-bottom: 1px solid #e5e7eb; /* Separator line */
+   z-index: 1000; /* Below sidebar but above content */
+   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+body.dark-mode .header {
+   background: #2d3748;
+   color: #cbd5e0;
+   border-color: #4a5568;
+}
+
+/* Header App Name */
+.header .app-name {
+   font-size: 20px;
+   font-weight: 600; /* Semi-bold */
+   color: #1f2937; /* Dark text */
+   transition: color 0.3s ease;
+}
+body.dark-mode .header .app-name {
+   color: #edf2f7;
+}
+
+/* Header Buttons Container */
+.header-buttons {
+   display: flex;
+   align-items: center; /* Align vertically */
+   gap: 15px; /* Space between buttons */
+}
+
+/* Theme Toggle Switch */
+.theme-toggle {
+   display: flex;
+   align-items: center;
+}
+
+.theme-toggle input[type="checkbox"] {
+   height: 0;
+   width: 0;
+   visibility: hidden;
+}
+
+.theme-label {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   cursor: pointer;
+   width: 50px;
+   height: 25px;
+   background-color: #ccc;
+   border-radius: 50px;
+   position: relative;
+   transition: background-color 0.2s ease;
+}
+body.dark-mode .theme-label {
+   background-color: #4a5568;
+}
+
+.theme-label .light-icon,
+.theme-label .dark-icon {
+   position: absolute;
+   top: 50%;
+   transform: translateY(-50%);
+   font-size: 18px;
+   color: #fff;
+   padding: 0 8px;
+}
+
+.theme-label .light-icon {
+   left: 5px;
+   color: #ffea00; /* Yellow for light */
+}
+
+.theme-label .dark-icon {
+   right: 5px;
+   color: #a0aec0; /* Light grey for dark */
+   display: none;
+}
+body.dark-mode .theme-label .light-icon {
+   display: none;
+}
+body.dark-mode .theme-label .dark-icon {
+   display: block;
+}
+
+.theme-label::after {
+   content: '';
+   position: absolute;
+   top: 3px;
+   left: 3px;
+   width: 19px;
+   height: 19px;
+   background-color: #fff;
+   border-radius: 50%;
+   transition: transform 0.2s ease;
+}
+body.dark-mode .theme-label::after {
+   transform: translateX(25px);
+   background-color: #f7fafc;
+}
+
+
+/* ======================== */
+/* General Button Styles */
+/* ======================== */
+
+button {
+   cursor: pointer;
+   transition: background-color 0.2s ease, transform 0.1s ease, color 0.2s ease, border-color 0.2s ease;
+}
+body.dark-mode button {
+   color: #cbd5e0;
+   border-color: #4a5568;
+}
+
+button:disabled {
+   cursor: not-allowed;
+   opacity: 0.6;
+}
+
+/* Icon Buttons (Sidebar/Header Small Buttons) */
+.close-btn,
+.search-btn,
+.newChat-btn { /* Assuming these are buttons now */
+   width: 36px; /* Slightly larger */
+   height: 36px;
+   border: none;
+   border-radius: 8px; /* Smoother radius */
+   background: #ffffff;
+   color: #6b7280;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border: 1px solid #e5e7eb; /* Subtle border */
+}
+body.dark-mode .close-btn,
+body.dark-mode .search-btn,
+body.dark-mode .newChat-btn {
+   background: #2d3748;
+   color: #cbd5e0;
+   border-color: #4a5568;
+}
+
+.close-btn:hover,
+.search-btn:hover,
+.newChat-btn:hover {
+   background: #f3f4f6; /* Light hover */
+   color: #1f2937; /* Darker*/
+   border-color: #d1d5db;
+}
+
+body.dark-mode .close-btn:hover,
+body.dark-mode .search-btn:hover,
+body.dark-mode .newChat-btn:hover {
+    background: #4a5568;
+    color: #f7fafc;
+    border-color: #718096;
+}
+
+/* Share Button */
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    background: #8b5cf6; /* Purple theme color */
+    color: white;
+    height: 40px;
+    padding: 0 20px; /* More padding */
+    border: none;
+    border-radius: 20px; /* Pill shape */
+    font-size: 14px;
+    font-weight: 500; /* Medium weight */
+}
+body.dark-mode .share-btn {
+    background: #7c3aed;
+    color: #edf2f7;
+}
+
+.share-btn:hover {
+    background: #7c3aed; /* Darker purple on hover */
+    transform: translateY(-1px); /* Slight lift */
+}
+body.dark-mode .share-btn:hover {
+    background: #a78bfa;
+}
+
+/* Sign-in / Profile Button */
+#signin-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Circle */
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+body.dark-mode #signin-button {
+    background: #7c3aed;
+    color: #edf2f7;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+#signin-button:hover {
+    background: #7c3aed;
+    transform: scale(1.05); /* Slightly larger */
+}
+body.dark-mode #signin-button:hover {
+    background: #a78bfa;
+}
+
+/* ======================== */
+/* Main Container Styles */
+/* ======================== */
+
+.main-container {
+    margin-left: 220px; /* Offset by sidebar width */
+    width: calc(100% - 220px); /* Take remaining width */
+    height: 100vh;
+    display: flex;
+    flex-direction: column; /* Stack header, chat, input vertically */
+    background-color: #f8f9fc; /* Ensure background consistency */
+    padding-top: 60px; /* Account for fixed header height */
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
+}
+body.dark-mode .main-container {
+    background-color: #323d54;
+}
+
+/* ======================== */
+/* Chat Area Styles */
+/* ======================== */
+
+.chat-area {
+    flex-grow: 1; /* Take available vertical space */
+    overflow-y: auto; /* Enable scrolling for messages */
+    padding: 20px 25px; /* Padding around messages */
+    display: flex;
+    flex-direction: column; /* Default direction (or remove line entirely) */
+}
+
+/* Messages Container */
+#chatMessages {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* Ensures messages stack top-to-bottom */
+}
+
+/* Common Message Bubble Styles */
+.user-message,
+.assistant-message,
+.system-message,
+.error-message {
+    padding: 10px 18px; /* Comfortable padding */
+    border-radius: 18px; /* Rounded corners */
+    margin-bottom: 12px; /* Space between bubbles */
+    max-width: 75%; /* Max width relative to container */
+    word-wrap: break-word; /* Wrap long words */
+    line-height: 1.5;
+    font-size: 15px; /* Slightly adjusted font size */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); /* Softer shadow */
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body.dark-mode .user-message,
+body.dark-mode .assistant-message,
+body.dark-mode .system-message,
+body.dark-mode .error-message {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure <p> tags inside messages don't add extra margin */
+.user-message p,
+.assistant-message p,
+.system-message p,
+.error-message p {
+    margin: 0;
+    white-space: pre-wrap; /* Preserve whitespace and newlines */
+}
+
+/* User Messages */
+.user-message {
+    background: #8b5cf6; /* Purple */
+    color: #ffffff;
+    align-self: flex-end; /* Align to the right */
+    border-bottom-right-radius: 6px; /* Tail effect */
+}
+body.dark-mode .user-message {
+    background: #7c3aed;
+    color: #edf2f7;
+}
+
+/* Assistant Messages */
+.assistant-message {
+    background: #ffffff; /* White */
+    color: #374151; /* Dark grey text */
+    align-self: flex-start; /* Align to the left */
+    border: 1px solid #e5e7eb; /* Subtle border */
+    border-bottom-left-radius: 6px; /* Tail effect */
+}
+body.dark-mode .assistant-message {
+    background: #2d3748;
+    color: #cbd5e0;
+    border-color: #4a5568;
+}
+/* Styling for code blocks within assistant messages (requires Markdown parsing) */
+.assistant-message pre {
+    background-color: #f3f4f6;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 14px;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+body.dark-mode .assistant-message pre {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border-color: #718096;
+}
+.assistant-message code:not(pre code) { /* Inline code */
+    background-color: #f3f4f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+body.dark-mode .assistant-message code:not(pre code) {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border-color: #718096;
+}
+/* System Info Messages */
+.system-message {
+    font-style: italic;
+    color: #6b7280; /* Medium grey */
+    align-self: center; /* Center align */
+    text-align: center;
+    font-size: 13px;
+    background-color: #f9fafb; /* Very light background */
+    border: 1px dashed #d1d5db; /* Dashed border */
+    max-width: 80%;
+    box-shadow: none; /* No shadow */
+}
+body.dark-mode .system-message {
+    color: #a0aec0;
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+/* Error Messages */
+.error-message {
+    color: #dc2626; /* Red text */
+    background-color: #fee2e2; /* Light red background */
+    border: 1px solid #fca5a5; /* Red border */
+    font-weight: 500;
+    align-self: center; /* Center align */
+    text-align: center;
+    font-size: 14px;
+    max-width: 80%;
+    box-shadow: none; /* No shadow */
+}
+body.dark-mode .error-message {
+    color: #fca5a5;
+    background-color: #742a2a;
+    border-color: #e53e3e;
+}
+
+/* ======================== */
+/* Input Container Styles */
+/* ======================== */
+
+.input-container {
+    width: 100%; /* Full width within main-container */
+    max-width: 800px; /* Match chat message width */
+    margin: 0 auto; /* Center horizontally */
+    padding: 12px 15px; /* Padding inside the container */
+    background: #ffffff;
+    border-radius: 24px; /* More rounded */
+    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.08); /* Shadow */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px; /* Space from bottom */
+    border: 1px solid #e5e7eb; /* Subtle border */
+    position: relative; /* For positioning buttons */
+    box-sizing: border-box;
+    padding-bottom: 65px; /* Space for the absolute positioned buttons row */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    min-height: 120px;
+}
+body.dark-mode .input-container {
+    background: #2d3748;
+    border-color: #4a5568;
+    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* File Preview Area */
+.file-preview-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap; /* Allow tags to wrap */
+    gap: 8px; /* Space between file tags */
+    padding-bottom: 8px; /* Space below previews if present */
+    /* min-height set dynamically by JS if needed */
+}
+
+/* Individual File Tag */
+.file-tag {
+    background: #f3f4f6; /* Light grey background */
+    padding: 6px 10px;
+    border-radius: 16px; /* Pill shape */
+    font-size: 13px;
+    color: #4b5563; /* Darker grey text */
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Space between icon, name, button */
+    white-space: nowrap; /* Prevent wrapping inside tag */
+    border: 1px solid #e5e7eb;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+body.dark-mode .file-tag {
+    background: #4a5568;
+    color: #cbd5e0;
+    border-color: #718096;
+}
+
+/* Remove File Button (inside tag) */
+.remove-file-btn {
+    background: none;
+    border: none;
+    color: #9ca3af; /* Light grey X */
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px; /* Space before X */
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+body.dark-mode .remove-file-btn {
+    color: #e2e8f0;
+}
+.remove-file-btn:hover {
+    color: #374151; /* Darker X on hover */
+}
+body.dark-mode .remove-file-btn:hover {
+    color: #f7fafc;
+}
+
+
+/* Wrapper for Textarea (allows it to grow) */
+.input-wrapper {
+    width: 100%;
+    display: flex; /* Needed? Maybe not */
+}
+
+/* Text Input Field */
+#messageInput {
+    flex-grow: 1; /* Take available space */
+    border: none;
+    outline: none;
+    background: transparent; /* Blend with container */
+    font-size: 16px;
+    padding: 10px 5px; /* Padding inside textarea */
+    resize: none; /* Disable manual resize handle */
+    overflow-y: auto; /* Allow scrolling if max-height exceeded */
+    min-height: 45px; /* Minimum height */
+    max-height: 150px; /* Max height before scrolling */
+    line-height: 1.5;
+    width: 100%; /* Ensure it takes full width */
+    color: #374151;
+    transition: color 0.3s ease;
+    margin-right: 10px
+}
+body.dark-mode #messageInput {
+    color: #cbd5e0;
+}
+
+/* Container for Bottom Buttons (Attach/Send) */
+.input-container-buttons {
+    width: calc(100% - 30px); /* Adjust width based on container padding */
+    height: 45px; /* Height of the button row */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute; /* Position at the bottom */
+    bottom: 10px; /* Align with container padding */
+    left: 15px; /* Align with container padding */
+    box-sizing: border-box;
+}
+
+/* Attach & Send Buttons */
+.attach-btn,
+.send-btn {
+    width: 42px; /* Slightly smaller */
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Circle */
+    border: none;
+    background: #e9d5ff; /* Lighter purple background */
+    color: #8b5cf6; /* Purple icon */
+    font-size: 20px; /* Icon size */
+    flex-shrink: 0; /* Prevent shrinking */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+body.dark-mode .attach-btn,
+body.dark-mode .send-btn {
+    background: #4a5568;
+    color: #a78bfa;
+}
+
+.attach-btn:hover,
+.send-btn:hover {
+    background: #d8b4fe; /* Slightly darker hover */
+    transform: scale(1.05);
+}
+body.dark-mode .attach-btn:hover,
+body.dark-mode .send-btn:hover {
+    background: #7c3aed;
+}
+.send-btn:disabled { /* Style when disabled */
+    background: #f3f4f6;
+    color: #9ca3af;
+    transform: none;
+}
+body.dark-mode .send-btn:disabled {
+    background: #4a5568;
+    color: #718096;
+}
+
+
+/* Loading Indicator (Spinner) */
+#loadingIndicator {
+    display: inline-block; /* Or flex if using flex alignment */
+    vertical-align: middle; /* Align with buttons if needed */
+}
+.spinner { /* Basic spinner - style as needed */
+    border: 3px solid rgba(139, 92, 246, 0.2); /* Light purple */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border-left-color: #8b5cf6; /* Purple */
+    animation: spin 0.8s linear infinite;
+    transition: border-color 0.3s ease, border-left-color 0.3s ease;
+}
+body.dark-mode .spinner {
+    border-color: rgba(167, 139, 250, 0.2);
+    border-left-color: #a78bfa;
+}
+
+@keyframes spin {
+   0% { transform: rotate(0deg); }
+   100% { transform: rotate(360deg); }
+}
+
+/* Material Icons default size */
+.material-icons {
+   font-size: 20px; /* Adjust as needed */
+   vertical-align: middle;
+}
+
+/* Simple CSS Spinner */
+.spinner {
+   border: 3px solid rgba(0, 0, 0, 0.1); /* Light grey border */
+   border-left-color: #007bff; /* Blue spinner color */
+   border-radius: 50%;
+   width: 16px; /* Adjust size as needed */
+   height: 16px;
+   animation: spin 1s linear infinite; /* Animation */
+   flex-shrink: 0; /* Prevent spinner from shrinking */
+ }
+ 
+ @keyframes spin {
+   to {
+     transform: rotate(360deg);
+   }
+ }
+ 
+ /* Style for system/error messages */
+ .system-message {
+   /* Add your existing styles */
+   color: #555;
+   font-style: italic;
+   /* Ensure flex works if spinner is added */
+   /* display: flex;
+   align-items: center;
+   gap: 8px; */
+ }
+ 
+ .error-message {
+  /* Add your existing styles */
+   color: #dc3545; /* Red color for errors */
+   font-weight: bold;
+    /* Ensure flex works if spinner is added */
+   /* display: flex;
+   align-items: center;
+   gap: 8px; */
+ }
+ 
+ /* Container for related video links */
+ .related-videos-container {
+     margin-top: 10px;
+     padding: 10px;
+     background-color: #f8f9fa; /* Light background */
+     border-radius: 5px;
+     border: 1px solid #e9ecef;
+ }
+ 
+ .related-videos-container p {
+     margin-bottom: 5px;
+ }
+ 
+ .related-videos-container ul {
+     margin-top: 5px;
+     margin-bottom: 0;
+ }
+ 
+ .related-videos-container li a {
+     color: #0056b3; /* Link color */
+     text-decoration: none;
+ }
+ .related-videos-container li a:hover {
+     text-decoration: underline;
+ }
+ 
+ 
+ /* Adjust input container padding */
+ .input-container {
+     padding: 12px 15px; /* Base padding */
+     /* Padding top adjusted by JS based on file preview */
+ }
+ 
+ /* File tag styling (example) */
+ .file-tag {
+     display: inline-flex; /* Align icon, text, button */
+     align-items: center;
+     background-color: #e9ecef;
+     padding: 3px 8px;
+     border-radius: 15px; /* Rounded tags */
+     font-size: 0.9em;
+     margin-right: 5px;
+     margin-bottom: 5px; /* Spacing below tags */
+ }
+
+
+ /*sidebar and hover*/
+
+
+ #logo-container {
+   position: absolute; /* Position relative to the chat area */
+   top: 45%; /* Center vertically */
+   left:57%; /* Center horizontally */
+   transform: translate(-50%, -50%); /* Adjust for element's size */
+   width: 100%;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   pointer-events: none;
+   z-index: 0;
+   user-select: none;
+}
+
+#logo-watermark {
+   opacity: 0.25; /* Adjust opacity */
+   max-width: 60%; /* Adjust max-width as needed */
+   max-height: 60%; /* Adjust max-height as needed */
+}

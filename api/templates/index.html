@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}VideoIntuit{% endblock %}
+
+{% block content %}
+<aside class="sidebar">
+    <div class="options-container">
+        <input type="checkbox" id="findOtherVideos" name="findOtherVideos">
+        <label for="findOtherVideos">Find related YouTube videos (more context)</label>
+      </div>
+    <div class="sidebar-buttons">
+        <button class="newChat-btn">
+            <span class="material-icons">add</span>
+        </button>
+    </div>
+    <div class="app-name1">VideoIntuit</div>
+    {% if user.is_authenticated %}
+        <h3>Your Chats</h3>
+        <ul class="sidebar-menu">
+            {% if user_chats %}
+                {% for chat in user_chats %}
+                    <li>
+                        <a href="#" data-chat-id="{{ chat.id }}">
+                            {% if chat.title %}
+                                {{ chat.title }}
+                            {% else %}
+                                Chat with
+                                {% for user in chat.users.all %}
+                                    {% if user != request.user %}
+                                        {{ user.username }}{% if not forloop.last %}, {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li>No chats yet.</li>
+            {% endif %}
+        </ul>
+    {% else %}
+        <p>Please log in to see your chats.</p>
+    {% endif %}
+</aside>
+
+<main class="main-container">
+    <header class="header">
+        <div class="app-name">VideoIntuit</div>
+        <div class="header-buttons">
+            <button class="share-btn" onclick="shareChat()">
+                <span class="material-icons">share</span> Share
+            </button>
+            <div class="theme-toggle">
+                <input type="checkbox" id="themeSwitch">
+                <label class="theme-label" for="themeSwitch">
+                    <span class="material-icons light-icon">light_mode</span>
+                    <span class="material-icons dark-icon">dark_mode</span>
+                </label>
+            </div>
+            {% if user.is_authenticated %}
+                <div class="user-profile-toggle" style="position: relative; display: inline-block;">
+                    <div class="user-initial-icon" onclick="toggleLogoutButton()" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; background-color: #8b5cf6; color: white; display: flex; justify-content: center; align-items: center; font-size: 16px; margin-right: 8px;">
+                        {% if user.first_name %}
+                            {{ user.first_name|slice:":1"|upper }}
+                        {% elif user.username %}
+                            {{ user.username|slice:":1"|upper }}
+                        {% else %}
+                            <span class="material-icons" style="font-size: 16px;">person</span>
+                        {% endif %}
+                    </div>
+                    <button id="logoutButton" onclick="confirmLogout()" style="display: none; position: absolute; top: 100%; right: 0; z-index: 10; background-color: #8b5cf6; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 8px; font-size: 16px; margin-top: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">Logout</button>
+                </div>
+            {% else %}
+                <div id="signin-button" onclick="window.location.href='{{ login_url }}'" style="cursor: pointer;">
+                    <span class="material-icons">person</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <script>
+            function toggleLogoutButton() {
+                var logoutButton = document.getElementById("logoutButton");
+                logoutButton.style.display = logoutButton.style.display === "none" ? "block" : "none";
+            }
+
+            function confirmLogout() {
+                if (confirm("Do you really want to logout?")) {
+                    window.location.href = "{{ logout_url }}";
+                }
+            }
+
+            // Dark/Light Mode Toggle
+            const themeSwitch = document.getElementById('themeSwitch');
+            const body = document.body;
+            const currentTheme = localStorage.getItem('theme');
+
+            if (currentTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeSwitch.checked = true;
+            }
+
+            themeSwitch.addEventListener('change', function() {
+                body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+            });
+        </script>
+    </header>
+       
+
+    <section class="chat-area">
+        <div class="chat-messages" id="chatMessages">
+            </div>
+
+        <div id="logo-container">
+            <img src="{% static 'images/vidintuit-removebg-preview.png' %}" alt="Logo Watermark" id="logo-watermark" draggable="false">
+        </div>
+    </section>
+
+    <section class="input-container">
+        <section class="file-preview-container" id="filePreviewContainer"></section>
+    
+        <div class="input-and-textarea-wrapper">
+            <textarea id="messageInput" placeholder="Message VideoIntuit..."></textarea>
+        </div>
+    
+        <div class="input-container-buttons">
+            <button class="attach-btn" id="attachBtn" title="Add Video">+</button>
+            <input type="file" id="fileInput" accept="video/*,audio/*" style="display: none;">
+            <span id="loadingIndicator" class="loading-spinner" style="display: none;"></span>
+            <button class="send-btn" id="sendBtn" title="Send Message">↑</button>
+        </div>
+    </section>
+    
+    <script>
+        function focusInput() {
+            document.getElementById("messageInput").focus();
+        }
+        window.onload = focusInput;
+        document.querySelector('.main-container').addEventListener('click', (event) => {
+            if (event.target.tagName !== 'BUTTON' && event.target.tagName !== 'TEXTAREA' && event.target.id !== 'signin-button' && !event.target.closest('.sidebar')) {
+                focusInput();
+            }
+        });
+    </script>
+</main>
+{% endblock %}
