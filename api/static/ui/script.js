@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // 'X-CSRFToken': getCookie('csrftoken'), // Add if CSRF needed
+                    'X-CSRFToken': getCookie('csrftoken'),
                 },
                 body: JSON.stringify({
                     question: question,
@@ -513,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let statusMessage = displayMessage(" Uploading & Initializing...", "system-message", processingStatusId, true); // Show spinner
 
         let fetchBody;
-        let headers = { /* 'X-CSRFToken': getCookie('csrftoken'), // Add CSRF if needed */ };
+        let headers = { 'X-CSRFToken': getCookie('csrftoken') };
 
         if (videoData instanceof FormData) {
             fetchBody = videoData;
@@ -640,10 +640,8 @@ document.addEventListener("DOMContentLoaded", function () {
         shareButton.addEventListener('click', shareChat);
     }
 
+    // CSRF Token Helper
     // ========================
-    // CSRF Token Helper (If needed - Uncomment and adapt if using Django's CSRF)
-    // ========================
-    /*
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -659,6 +657,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         return cookieValue;
     }
-    */
+    
 
 }); // End DOMContentLoaded

@@ -872,7 +872,6 @@ def index(request):
 
 
 # View 2: Upload Video
-@csrf_exempt
 def upload_video(request):
     """
     Handles POST video/URL, processes audio, gets transcript, optionally finds related
@@ -1220,7 +1219,6 @@ question stated above.
 
 
 # View 3: Ask Question (Handles follow-up questions, RAG, and permission state)
-@csrf_exempt
 def ask_question(request):
     """
     Handles follow-up questions, potentially using RAG, and manages state
